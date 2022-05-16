@@ -40,89 +40,111 @@ class Quality_Control:
         cmd = textwrap.dedent(f'''
         /share/software/apps/anaconda2/bin/fastp \\
             -i {fq1} \\
-            -o {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.1.gz \\
+            -o {self.projdir}/1.Clean/{sampleID}/{sampleID}.clean.fq.1.gz \\
             -I {fq2} \\
-            -O {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.2.gz \\
+            -O {self.projdir}/1.Clean/{sampleID}/{sampleID}.clean.fq.2.gz \\
             -j {sampleID}.fastp.json &&\\
+        
+        # 结果文件软连
+        ln -sf {self.projdir}/1.Clean/{sampleID}/{sampleID}.clean.fq.1.gz {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz
+        ln -sf {self.projdir}/1.Clean/{sampleID}/{sampleID}.clean.fq.2.gz {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz
         ''')
         shellname = f'{self.projdir}/1.Clean/{sampleID}/qc.sh'
         utils.write_cmd(cmd, shellname)
 
 
-    def trim_and_bowtie2(self, sampleID, fq1, fq2):
+    def qc_and_bowtie2(self, sampleID, fq1, fq2):
         # 质控加上去除宿主
         cmd = textwrap.dedent(f'''
-        # # trim质控
-        # java -jar /lustrefs/share3/Bioinfo/lvmengting/pipeline/metagenomics/Trimmomatic-0.36/trimmomatic-0.36.jar \\
-        #     PE  \\
-        #     -threads 4 \\
-        #     {fq1} \\
-        #     {fq2} \\
-        #     {self.projdir}/1.Clean/{sampleID}/{sampleID}.pe.1.fq.gz \\
-        #     {self.projdir}/1.Clean/{sampleID}/{sampleID}.se.1.fq.gz \\
-        #     {self.projdir}/1.Clean/{sampleID}/{sampleID}.pe.2.fq.gz \\
-        #     {self.projdir}/1.Clean/{sampleID}/{sampleID}.se.2.fq.gz \\
-        #     ILLUMINACLIP:/lustrefs/share3/Bioinfo/lvmengting/pipeline/metagenomics/Trimmomatic-0.36/adapters/TruSeq2-PE.fa:2:40:15 \\
-        #     LEADING:2 \\
-        #     TRAILING:2 SLIDINGWINDOW:4:2 \\
-        #     MINLEN:25 &&
-        
         # 去除宿主
         /share/software/apps/bowtie2/2.3.4/bowtie2 \\
             --sensitive -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 \\
             -I 200 -X 400 \\
             -p 6 \\
             -x ~/pipeline/metagenomics/database/fasta/human/human \\
-            -1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.1.gz \\
-            -2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.2.gz \\
+            -1 {fq1} \\
+            -2 {fq2} \\
             --un-conc-gz {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.gz
-        
+                
+        # fastqc质控
+        /share/software/apps/anaconda2/bin/fastp \\
+            -i {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.1.gz \\
+            -o {self.projdir}/1.Clean/{sampleID}/{sampleID}.clean.fq.1.gz \\
+            -I {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.2.gz \\
+            -O {self.projdir}/1.Clean/{sampleID}/{sampleID}.clean.fq.2.gz \\
+            -j {sampleID}.fastp.json &&\\
+
         # 结果文件软连
-        # ln -sf {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.1.gz {self.projdir}/1.Clean/{sampleID}.final.1.gz
-        # ln -sf {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.2.gz {self.projdir}/1.Clean/{sampleID}.final.2.gz
+        ln -sf {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.1.gz {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz
+        ln -sf {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.2.gz {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz
         ''')
-        shellname = f'{self.projdir}/1.Clean/{sampleID}/qc1.sh'
+        shellname = f'{self.projdir}/1.Clean/{sampleID}/qc.sh'
         utils.write_cmd(cmd, shellname)
 
 
-    def fastqc(self, sampleID):
-        # 数据质量统计分析
+    def md5(self, sampleID):
+        # 计算质控后clean fq的md5值
         cmd = textwrap.dedent(f'''
-        fastqc {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.1.gz -t 4
-        fastqc {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.2.gz -t 4
+        md5sum {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz > md5.txt
+        md5sum {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz >> md5.txt
         ''')
-        shellname = f'{self.projdir}/1.Clean/{sampleID}/fastqc.sh'
-        utils.write_cmd(cmd, shellname)
-
-    def multiqc(self):
-        file_qc = f'{self.projdir}/1.Clean/multiqc/all_qc_samples.txt'
-        with open(file_qc, 'w') as fw:
-            for sampleID in self.fq_info:
-                path = f'{self.projdir}/1.Clean/{sampleID}\n'
-                fw.write(path)
-
-        cmd = textwrap.dedent(f'''
-        /lustrefs/share3/Bioinfo/lvmengting/.conda/envs/python3_lmt/bin/multiqc \\
-            --file-list {file_qc}
-        ''')
-        shellname = f'{self.projdir}/1.Clean/multiqc/multiqc.sh'
+        shellname = f'{self.projdir}/1.Clean/{sampleID}/md5.sh'
         utils.write_cmd(cmd, shellname)
 
 
-    def stat_info(self, sampleID):
+    def stat_info(self, sampleID, fq1, fq2):
         '''
         # 条数/碱基数/Q20碱基数/Q30碱基数/GC碱基数
         '''
         cmd = textwrap.dedent(f'''
+        # 统计rawdata 和 clean data, 进行比对
+        # rawdata
         ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
-            {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.1.gz \\
-            {self.projdir}/1.Clean/{sampleID}/{sampleID}.1.info.xls
+            {fq1} \\
+            {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.1.info.xls 
 
         ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
-            {self.projdir}/1.Clean/{sampleID}/{sampleID}.fq.2.gz \\
-            {self.projdir}/1.Clean/{sampleID}/{sampleID}.2.info.xls
+            {fq2} \\
+            {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.2.info.xls 
+        
+        ## clean
+        ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
+            {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
+            {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.info.xls
+
+        ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
+            {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
+            {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.info.xls
+
+        ## 绘图
+        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/plot.py \\
+            {self.projdir}/1.Clean/{sampleID}/{sampleID}.fastp.json
+        
+        ## 质控信息统计
+        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/stat.py \\
+            --raw1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.1.info.xls  \\
+            --raw2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.2.info.xls  \\
+            --clean1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.info.xls\\
+            --clean2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.info.xls\\
+            --stat_result {self.projdir}/1.Clean/{sampleID}/{sampleID}.stat.txt 
+
          ''')
         shellname = f'{self.projdir}/1.Clean/{sampleID}/stat.sh'
+        utils.write_cmd(cmd, shellname)
+
+
+    def merge_stat(self):
+        stat_files = []
+        for sample in self.fq_info:
+            stat = f'{self.projdir}/1.Clean/{sample}/{sample}.stat.txt'
+            stat_files.append(stat)
+        stat_files = ' '.join(stat_files)
+        cmd = textwrap.dedent(f'''
+        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/combine_stat.py \\
+            --stat_files {stat_files}\\
+            --stat_merge {self.projdir}/1.Clean/all.samples.stat.txt
+        ''')
+        shellname = f'{self.projdir}/1.Clean/merge_stat.sh'
         utils.write_cmd(cmd, shellname)
 
 
@@ -139,11 +161,13 @@ class Quality_Control:
             if '1.1' in analysis_list:
                 self.fastp(sampleID, fq1, fq2)
             elif '1.2' in analysis_list:
-                self.trim_and_bowtie2(sampleID, fq1, fq2)
+                self.qc_and_bowtie2(sampleID, fq1, fq2)
 
-            # self.fastqc(sampleID)  # 生成质控信息
-            self.stat_info(sampleID)
-            # self.multiqc() 
+            self.stat_info(sampleID, fq1, fq2)
+            self.md5(sampleID)
+
+        self.merge_stat()
+        
 
 
 
