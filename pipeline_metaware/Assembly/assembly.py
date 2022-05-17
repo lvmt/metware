@@ -161,7 +161,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='metagenomics pipeline')
     parser.add_argument('--projdir', help='project analysis absolute dirname')
     parser.add_argument('--sample_file', help='样本信息配置文件')
-    parser.add_argument('--analysis_list', help='具体分析步骤,后续待扩展', type=str)
+    parser.add_argument('--analysis_list', help='具体分析步骤,后续待扩展', type=str, default='2')
     # 质控分析参数
     
     args = vars(parser.parse_args())
