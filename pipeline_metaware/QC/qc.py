@@ -99,20 +99,20 @@ class Quality_Control:
         cmd = textwrap.dedent(f'''
         # 统计rawdata 和 clean data, 进行比对
         # rawdata
-        ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
+        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {fq1} \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.1.info.xls 
 
-        ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
+        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {fq2} \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.2.info.xls 
         
         ## clean
-        ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
+        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.info.xls
 
-        ~/gitlab/meta_genomics/metagenomics/metagenomics/pipeline/QC/fastq_stat \\
+        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.info.xls
 
@@ -182,5 +182,3 @@ if __name__ == '__main__':
     
     args = vars(parser.parse_args())
     Quality_Control(args).start()
-
-   
