@@ -40,6 +40,7 @@ class Meta_Assembly:
 
     def assemby_sample(self, sampleID):
         # 占用内存小速度快,组装结果略微粗糙
+        utils.mkdirs(f'{self.projdir}/2.Assembly/{sampleID}')
         cmd = textwrap.dedent(f'''
         ## 单样本组装
         # ~/.conda/envs/python2_lmt/bin/megahit \\
@@ -90,7 +91,6 @@ class Meta_Assembly:
         utils.mkdirs(f'{self.projdir}/2.Assembly/unmap_assembly')
         unmap1 = []
         unmap2 = []
-
         for sampleID in self.fq_info:
             tmp1 = f'{self.projdir}/2.Assembly/{sampleID}/{sampleID}.unmaped.fq.1.gz'
             tmp2 = f'{self.projdir}/2.Assembly/{sampleID}/{sampleID}.unmaped.fq.2.gz'
@@ -152,7 +152,6 @@ class Meta_Assembly:
         analysis_list = self.analysis_list.split(';')
         if '2' in analysis_list:
             for sampleID in self.fq_info:
-                utils.mkdirs(f'{self.projdir}/2.Assembly/{sampleID}')
                 self.assemby_sample(sampleID)
 
             self.assembly_unmap_reads() # 混合组装
