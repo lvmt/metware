@@ -38,9 +38,10 @@ class Meta_Assembly:
         self.fq_info = utils.get_fq_info(self.sample_file)
 
 
-    def megahit(self, sampleID):
+    def assemby_sample(self, sampleID):
         # 占用内存小速度快,组装结果略微粗糙
         cmd = textwrap.dedent(f'''
+        ## 单样本组装
         # ~/.conda/envs/python2_lmt/bin/megahit \\
         # -t 4 \\
         # -1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
@@ -58,7 +59,14 @@ class Meta_Assembly:
         # ln -sf {self.projdir}/2.Assembly/{sampleID}/megahit/{sampleID}.contigs.fa \\
         #     {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa &&\\
 
-        # # 获取未被利用的reads
+        ## 组装结果评估
+        python3 ~/pipeline/metagenomics/software/quast-4.6.3/quast.py \\
+            {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa \\
+            -o {self.projdir}/2.Assembly/{sampleID}/quast \\
+            --contig-thresholds 0,500,1000,5000,10000,25000,50000 \\
+            --plots-format png
+
+        ## 获取未被利用的reads, 后续参与混合组装
         # # /share/software/apps/anaconda2/bin/bowtie2建立所有存在问题
         # /share/software/apps/bowtie2/2.3.4/bowtie2-build \\
         #     -f {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa \\
@@ -93,36 +101,30 @@ class Meta_Assembly:
         unmap2 = ','.join(unmap2)
         
         cmd = textwrap.dedent(f'''
-        ~/.conda/envs/python2_lmt/bin/megahit \\
-        -t 6 \\
-        -1 {unmap1} \\
-        -2 {unmap2} \\
-        --out-dir {self.projdir}/2.Assembly/unmap_assembly/megahit \\
-        --out-prefix unmap_reads \\
-        --k-min 35 \\
-        --k-max 95 \\
-        --k-step 20 \\
-        --min-contig-len 500 \\
-        -f  &&\\
+        # ## unmap reads混合组装
+        # ~/.conda/envs/python2_lmt/bin/megahit \\
+        # -t 6 \\
+        # -1 {unmap1} \\
+        # -2 {unmap2} \\
+        # --out-dir {self.projdir}/2.Assembly/unmap_assembly/megahit \\
+        # --out-prefix unmap_reads \\
+        # --k-min 35 \\
+        # --k-max 95 \\
+        # --k-step 20 \\
+        # --min-contig-len 500 \\
+        # -f  &&\\
 
-        ln -sf {self.projdir}/2.Assembly/unmap_assembly/megahit/unmap_reads.contigs.fa \\
-            {self.projdir}/2.Assembly/unmap_assembly/unmap_reads.contigs.fa
+        # ln -sf {self.projdir}/2.Assembly/unmap_assembly/megahit/unmap_reads.contigs.fa \\
+        #     {self.projdir}/2.Assembly/unmap_assembly/unmap_reads.contigs.fa
         
-        ''')
-        shellname = f'{self.projdir}/2.Assembly/unmap_assembly/unmap_assembly.sh'
-        utils.write_cmd(cmd, shellname)
-
-
-    def assembly_assessment(self, sampleID):
-        # 对组装的结果进行评估
-        cmd = textwrap.dedent(f'''
+        ## 组装结果评估
         python3 ~/pipeline/metagenomics/software/quast-4.6.3/quast.py \\
-            {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa \\
-            -o {self.projdir}/2.Assembly/{sampleID}/quast \\
+            {self.projdir}/2.Assembly/unmap_assembly/unmap_reads.contigs.fa \\
+            -o {self.projdir}/2.Assembly/unmap_assembly/quast \\
             --contig-thresholds 0,500,1000,5000,10000,25000,50000 \\
             --plots-format png
         ''')
-        shellname = f'{self.projdir}/2.Assembly/{sampleID}/assessment.sh'
+        shellname = f'{self.projdir}/2.Assembly/unmap_assembly/unmap_assembly.sh'
         utils.write_cmd(cmd, shellname)
 
 
@@ -132,6 +134,9 @@ class Meta_Assembly:
         for sample in self.fq_info:
             stat = f'{self.projdir}/2.Assembly/{sample}/quast/report.tsv'
             stat_files.append(stat)
+
+        # 添加unmap reads的结果
+        stat_files.append(f'{self.projdir}/2.Assembly/unmap_assembly/quast/report.tsv')
         stat_files = ' '.join(stat_files)
 
         cmd = textwrap.dedent(f'''
@@ -148,10 +153,10 @@ class Meta_Assembly:
         if '2' in analysis_list:
             for sampleID in self.fq_info:
                 utils.mkdirs(f'{self.projdir}/2.Assembly/{sampleID}')
-                # self.megahit(sampleID)
-                self.assembly_assessment(sampleID)
-            self.assembly_unmap_reads()
-            self.merge_stat()
+                self.assemby_sample(sampleID)
+
+            self.assembly_unmap_reads() # 混合组装
+            self.merge_stat()   # 统计信息汇总
 
 
 
@@ -162,7 +167,6 @@ if __name__ == '__main__':
     parser.add_argument('--projdir', help='project analysis absolute dirname')
     parser.add_argument('--sample_file', help='样本信息配置文件')
     parser.add_argument('--analysis_list', help='具体分析步骤,后续待扩展', type=str, default='2')
-    # 质控分析参数
     
     args = vars(parser.parse_args())
     Meta_Assembly(args).start()
