@@ -7,33 +7,38 @@
 
 
 # 合并全部样本的丰度结果
+# 合并全部样本的基因数目结果(后续相对转换为绝对定量的时候需要)
 import pandas as pd  
 import os  
-
+from functools import reduce
 
 
 
 import argparse
 parser = argparse.ArgumentParser(description='merge abundance table')
 parser.add_argument('--abundance_tables', nargs='+', help='丰度文件')
-parser.add_argument('--merge_abundance', help='输出结果')
+parser.add_argument('--merge_result_suffix', help='输出结果')
 
 args = vars(parser.parse_args())
 # print(args)
 
-df_list = []
+df_abundance_list = []
+df_gene_list = []
 for table in args['abundance_tables']:
     name = os.path.basename(table)
     df = pd.read_csv(table, sep='\t')
-    df = df.loc[:, ['gene', 'abundance']].rename(columns={'abundance': name})
-    df_list.append(df)
+    df_abundance = df.loc[:, ['gene', 'abundance']].rename(columns={'abundance': name})
+    df_gene = df.loc[:, ['gene', 'count']].rename(columns={'count': name})
+    df_abundance_list.append(df_abundance)
+    df_gene_list.append(df_gene)
 
 
-combine_df = df_list[0]
+combine_abundance_df = reduce(lambda x,y: pd.merge(x, y, on='gene', how='outer').fillna(0), df_abundance_list)
+combine_gene_df = reduce(lambda x,y: pd.merge(x, y, on='gene', how='outer').fillna(0), df_gene_list)
 
-for df in df_list[1:]:
-    combine_df = pd.merge(combine_df, df, on='gene', how='outer').fillna(0)
+merge_gene = '{merge_result_suffix}.combine.readsNum'.format(**args)
+merge_abudance = '{merge_result_suffix}.combine.readsNum.relative.xls'.format(**args)
 
-
-combine_df.to_csv(args['merge_abundance'], sep='\t', index=None)
+combine_abundance_df.to_csv(merge_abudance, sep='\t', index=None)
+combine_gene_df.to_csv(merge_gene, sep='\t', index=None)
 

@@ -22,7 +22,7 @@ def get_length_df(length_file):
 
 
 def main(count_df, length_df, outfile):
-    merge_df = pd.merge(count_df, length_df, on='gene', how='outer').fillna(0)
+    merge_df = pd.merge(count_df, length_df, on='gene', how='inner')  # 丢掉基因count不满足阈值的基因
     merge_df['count'] = merge_df['count'].values.astype(float)
     merge_df['length'] = merge_df['length'].values.astype(float)
 
