@@ -20,6 +20,17 @@
     - QUAST评估组装结果
 
 ## 3、GenePrediction 基因预测分析目录
+    - 单样本预测(metagenemark)
+    - unmap reads预测
+    - 基因预测结果处理
+        - 重命名基因名称(cd-hit不接受重复名)
+        - 剔除核酸长度小于100nt的预测结果
+    - CD-HIT预测(基于protein水平,主要是快些)
+        - 使用大内存, 多线程;不然慢到你怀疑人生
+    - 基于protein的CD-HIT预测结果,获取核酸的CD-HIT结果
+    - bowtie2比对(clean fq与聚类后的nucleotide.fa)
+    - 统计丰度信息(得到的为相对丰度)
+    - 相对丰度转换为绝对丰度
 
 ## 4、TaxAnnotation 物种注释目录
 
