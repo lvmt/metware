@@ -50,4 +50,12 @@ def get_fq_info(sample_file):
     return fq_info_dict
 
 
+def get_group_info(sample_file):
+    # 获取分析样本的属组
+
+    pass 
+
+
+
     
+
