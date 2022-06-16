@@ -12,7 +12,7 @@
 '''
 
 
-
+import yaml
 import os
 import sys
 import textwrap
@@ -29,10 +29,20 @@ except Exception as e:
 class Quality_Control:
 
     def __init__(self, args):
-        self.projdir = args['projdir']
-        self.sample_file = args['sample_file']
-        self.analysis_list = args['analysis_list']
+        self.args = args 
+        self.projdir = self.args['projdir']
+        self.sample_file = self.args['sample_file']
+        self.analysis_list = self.args['analysis_list']
         self.fq_info = utils.get_fq_info(self.sample_file)
+        
+
+    def link_rawdata(self):
+        # 先软连原始数据
+        for sample in self.fq_info:
+            utils.mkdirs(f'{self.projdir}/0.RawData/{sample}')
+            fq1, fq2 = self.fq_info[sample]
+            os.system(f'ln -sf {fq1} {self.projdir}/0.RawData/{sample}/{sample}.fq.1.gz')
+            os.system(f'ln -sf {fq2} {self.projdir}/0.RawData/{sample}/{sample}.fq.2.gz')
 
 
     def fastp(self, sampleID, fq1, fq2):
@@ -55,13 +65,14 @@ class Quality_Control:
 
     def qc_and_bowtie2(self, sampleID, fq1, fq2):
         # 质控加上去除宿主
+        host = self.args['HOST'][self.args['host']]
         cmd = textwrap.dedent(f'''
         # 去除宿主
         /share/software/apps/bowtie2/2.3.4/bowtie2 \\
             --sensitive -D 15 -R 2 -N 0 -L 22 -i S,1,1.15 \\
             -I 200 -X 400 \\
             -p 6 \\
-            -x ~/pipeline/metagenomics/database/fasta/human/human \\
+            -x {host} \\
             -1 {fq1} \\
             -2 {fq2} \\
             --un-conc-gz {self.projdir}/1.Clean/{sampleID}/{sampleID}.remove_host.fq.gz
@@ -97,22 +108,22 @@ class Quality_Control:
         # 条数/碱基数/Q20碱基数/Q30碱基数/GC碱基数
         '''
         cmd = textwrap.dedent(f'''
-        # 统计rawdata 和 clean data, 进行比对
-        # rawdata
+        # # 统计rawdata 和 clean data, 进行比对
+        # # rawdata
         ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {fq1} \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.1.info.xls 
 
-        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
+        # ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {fq2} \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.2.info.xls 
         
-        ## clean
+        # ## clean
         ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.info.xls
 
-        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
+        # ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.info.xls
 
@@ -120,7 +131,7 @@ class Quality_Control:
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/plot.py \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.fastp.json
         
-        ## 质控信息统计
+        # ## 质控信息统计
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/stat.py \\
             --raw1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.1.info.xls  \\
             --raw2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.2.info.xls  \\
@@ -149,8 +160,7 @@ class Quality_Control:
 
 
     def start(self):
-        analysis_list = self.analysis_list.split(';')
-        # utils.mkdirs(f'{self.projdir}/1.Clean/multiqc')
+        self.link_rawdata()
 
         for sampleID in self.fq_info:
             fq1, fq2 = self.fq_info[sampleID]
@@ -158,9 +168,9 @@ class Quality_Control:
             utils.mkdirs(sample_dir)
             
             # 质控程序选择
-            if '1.1' in analysis_list:
+            if '1.1' in self.analysis_list.split(','):
                 self.fastp(sampleID, fq1, fq2)
-            elif '1.2' in analysis_list:
+            elif '1.2' in self.analysis_list.split(','):
                 self.qc_and_bowtie2(sampleID, fq1, fq2)
 
             self.stat_info(sampleID, fq1, fq2)
@@ -177,8 +187,16 @@ if __name__ == '__main__':
     parser.add_argument('--projdir', help='project analysis absolute dirname')
     parser.add_argument('--sample_file', help='样本信息配置文件')
     parser.add_argument('--analysis_list', help='具体分析步骤,后续待扩展', type=str)
-    # 质控分析参数
     parser.add_argument('--host', help='宿主来源')
+    parser.add_argument('--config', help='一些配置参数, 命令行参数优先级高于配置文件')
     
     args = vars(parser.parse_args())
-    Quality_Control(args).start()
+    config_info = yaml.safe_load(open(args['config'])) 
+
+    for key, value in args.items():
+        if value:
+            config_info.update({key: value})
+
+    print(config_info)
+
+    Quality_Control(config_info).start()
