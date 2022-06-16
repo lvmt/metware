@@ -13,6 +13,9 @@ from QC.qc import Quality_Control
 from Assembly.assembly import Meta_Assembly
 from GenePrediction.gene_prediction import Prediction
 from TaxAnnotation.taxonomy_annotation import Taxonomy
+from FunctionAnnotation.function_annotation import KEGG
+from FunctionAnnotation.function_annotation import CAZy
+from FunctionAnnotation.function_annotation import eggNOG
 
 
 
@@ -33,6 +36,9 @@ class MainPipeline:
         Meta_Assembly(self.args).start()
         Prediction(self.args).start()
         Taxonomy(self.args).start()
+        KEGG(self.args).start()
+        CAZy(self.args).start()
+        eggNOG(self.args).start()
 
 
 
@@ -47,6 +53,7 @@ if __name__ == '__main__':
         '4': '>>> TaxAnnotation 物种预测',
         '5': '>>> FunAnnotation 功能注释'
     }
+
     import argparse
     parser = argparse.ArgumentParser(description='metagenomics pipeline')
     parser.add_argument('--projdir', help='project analysis absolute dirname')
@@ -56,6 +63,10 @@ if __name__ == '__main__':
     parser.add_argument('--host', help='宿主来源')
     # diamond 参数
     parser.add_argument('--threshold', help='evalue阈值', type=float, default=0.00001)
+    ## 功能注释参数 
+    parser.add_argument('--db_kegg', help='kegg 蛋白数据库')
+
+
     args = vars(parser.parse_args())
     print(args)
     

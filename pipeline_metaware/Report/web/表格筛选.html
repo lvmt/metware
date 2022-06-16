@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>菜鸟教程(runoob.com)</title>
+<style>
+
+    *{
+
+        margin: 0;
+        padding: 0;
+        
+    }
+        
+    .box{
+        
+        border: 1px solid #000;
+        
+        margin:50px auto;
+        
+        width: 340px;
+        
+        padding: 10px 10px;
+        
+    }
+    
+    .box table{
+    
+    margin: auto;
+    
+    }
+    
+    .box .box-top{
+    
+    width: 303px;
+    
+    margin: 5px auto;
+    
+    }
+    
+    .box table tr td,th{
+    
+    padding: 5px 30px;
+    
+    text-align: center;
+    
+    }
+    
+    .box table .parent{
+    
+    background: lightgray;
+    
+    }
+    
+    .selected{
+    
+    background: gray !important;
+    
+    }
+    
+    .selectHeight{
+    
+    background: darkseagreen !important;
+    
+    }
+    
+</style>
+
+<script>
+$(function () {
+    
+    //默认让王五选中
+    
+    $("tr:contains('王五')").addClass("selectHeight")
+    
+    //点击让其展示出列表 默认让其都隐藏
+    
+    $(".box tr.parent").click(function () {
+    
+    $(this)
+    
+    .toggleClass("selected")
+    
+    .siblings(".child_"+this.id).stop().toggle();
+    
+    }).click();//此行代码表示要立即执行
+    
+    //设置列表查询
+    
+    $("#filterName").keyup(function () {
+    
+    $("table tbody tr").stop().hide() //将tbody中的tr都隐藏
+    
+    .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
+    
+    });
+    
+    });
+</script>
+</head>
+
+<body>
+
+<table>
+    <tbody>
+        <tr class="parent" id="row_01"> <td colspan="3">前台设计组</td></tr>
+        <tr class="child_row_01"><td>张三</td><td>男</td><td>浙江宁波</td></tr>
+        <tr class="child_row_01"><td>李四</td><td>男</td><td>浙江宁波</td></tr>
+        <tr class="child_row_01"><td>王五</td><td>男</td><td>浙江宁波</td></tr>
+
+    </tbody>
+
+</table>
+
+
+</body>
+</html>

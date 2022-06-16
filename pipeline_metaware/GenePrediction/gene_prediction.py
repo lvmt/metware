@@ -36,25 +36,25 @@ class Prediction:
         utils.mkdirs(f'{self.projdir}/3.GenePrediction/unmap_predict')
         cmd = textwrap.dedent(f'''
         ## 基因预测
-        # ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/gmhmmp \\
-        #     -a -d -f G \\
-        #     -m ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/MetaGeneMark_v1.mod \\
-        #     -A {self.projdir}/3.GenePrediction/unmap_predict/unmap.protein.fa \\
-        #     -D {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.fa \\
-        #     -o {self.projdir}/3.GenePrediction/unmap_predict/unmap.contigs.fa.gff \\
-        #     {self.projdir}/2.Assembly/unmap_assembly/unmap_reads.contigs.fa &&\\
+        ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/gmhmmp \\
+            -a -d -f G \\
+            -m ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/MetaGeneMark_v1.mod \\
+            -A {self.projdir}/3.GenePrediction/unmap_predict/unmap.protein.fa \\
+            -D {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.fa \\
+            -o {self.projdir}/3.GenePrediction/unmap_predict/unmap.contigs.fa.gff \\
+            {self.projdir}/2.Assembly/unmap_assembly/unmap_reads.contigs.fa &&\\
 
         # ## 对预测结果名称进行修改及100nt过滤: 核酸序列
-        # sed '/>/s/gene/unmap_gene/' {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.fa \\
-        #     | sed '/>/s/GeneMark.hmm//'| awk  -F '|' '{{print $1}}' \\
-        #     > {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.fa  &&\\
+        sed '/>/s/gene/unmap_gene/' {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.fa \\
+            | sed '/>/s/GeneMark.hmm//'| awk  -F '|' '{{print $1}}' \\
+            > {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.fa  &&\\
 
-        # ~/.conda/envs/python2_lmt/bin/seqkit seq -m 100 \\
-        #     {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.fa \\
-        #     > {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.100nt.fa &&\\
+        ~/.conda/envs/python2_lmt/bin/seqkit seq -m 100 \\
+            {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.fa \\
+            > {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.100nt.fa &&\\
 
-        # ln -sf {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.100nt.fa \\
-        #     {self.projdir}/3.GenePrediction/unmap_predict/unmap.cds.fa &&\\
+        ln -sf {self.projdir}/3.GenePrediction/unmap_predict/unmap.nucleotide.rename.100nt.fa \\
+            {self.projdir}/3.GenePrediction/unmap_predict/unmap.cds.fa &&\\
 
         ## 获取长度大于100nt的基因名称
          ~/.conda/envs/python2_lmt/bin/seqkit seq -n \\
@@ -94,25 +94,25 @@ class Prediction:
         # 基于单个样本进行基因预测 
         cmd = textwrap.dedent(f'''
         ## 基因预测
-        # ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/gmhmmp \\
-        #     -a -d -f G \\
-        #     -m ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/MetaGeneMark_v1.mod \\
-        #     -A {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.protein.fa \\
-        #     -D {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.fa \\
-        #     -o {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.contigs.fa.gff \\
-        #     {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa  &&\\
+        ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/gmhmmp \\
+            -a -d -f G \\
+            -m ~/pipeline/metagenomics/software/MetaGeneMark_linux_64/mgm/MetaGeneMark_v1.mod \\
+            -A {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.protein.fa \\
+            -D {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.fa \\
+            -o {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.contigs.fa.gff \\
+            {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa  &&\\
 
-        ## 对预测结果名称进行修改及100nt过滤: 核酸序列
-        # sed '/>/s/gene/{sampleID}_gene/' {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.fa \\
-        #     | sed '/>/s/GeneMark.hmm//'| awk  -F '|' '{{print $1}}' \\
-        #     > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.fa  &&\\
+        # 对预测结果名称进行修改及100nt过滤: 核酸序列
+        sed '/>/s/gene/{sampleID}_gene/' {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.fa \\
+            | sed '/>/s/GeneMark.hmm//'| awk  -F '|' '{{print $1}}' \\
+            > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.fa  &&\\
 
-        # ~/.conda/envs/python2_lmt/bin/seqkit seq -m 100 \\
-        #     {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.fa \\
-        #     > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.100nt.fa &&\\
+        ~/.conda/envs/python2_lmt/bin/seqkit seq -m 100 \\
+            {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.fa \\
+            > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.100nt.fa &&\\
 
-        # ln -sf {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.100nt.fa \\
-        #     {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.cds.fa &&\\
+        ln -sf {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.rename.100nt.fa \\
+            {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.cds.fa &&\\
 
         ## 获取长度大于100nt的基因名称
         ~/.conda/envs/python2_lmt/bin/seqkit seq -n \\
@@ -160,15 +160,15 @@ class Prediction:
         cmd = textwrap.dedent(f'''
         # cat {protein_files} > {self.projdir}/3.GenePrediction/Cluster/total.protein.fa
 
-        # /lustrefs/share3/Bioinfo/lvmengting/.conda/envs/python2_lmt/bin/cd-hit \\
-        #     -c 0.95 \\
-        #     -aS 0.9 \\
-        #     -G 0 \\
-        #     -g 1 \\
-        #     -d 0 \\
-        #     -M 100000 \\
-        #     -i {self.projdir}/3.GenePrediction/Cluster/total.protein.fa \\
-        #     -o {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.fa &&\\
+        /lustrefs/share3/Bioinfo/lvmengting/.conda/envs/python2_lmt/bin/cd-hit \\
+            -c 0.95 \\
+            -aS 0.9 \\
+            -G 0 \\
+            -g 1 \\
+            -d 0 \\
+            -M 100000 \\
+            -i {self.projdir}/3.GenePrediction/Cluster/total.protein.fa \\
+            -o {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.fa &&\\
 
         ## 对去冗余后的蛋白结果进行统计分析
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/stat_protein_cdhit.py \\
@@ -185,19 +185,19 @@ class Prediction:
         # 使用蛋白进行CD-HIT, 因为数据量较小, 速度快, 聚类结果中提取基因名称
         cdhit_protein = f'{self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.fa'
         cmd = textwrap.dedent(f'''
-        # ## 测试下直接利用nucleotide聚类产生的差异
-        # # 获取代表性基因名称
-        # ~/.conda/envs/python2_lmt/bin/seqkit \\
-        #     seq -n \\
-        #     {cdhit_protein} \\
-        #     > {self.projdir}/3.GenePrediction/Cluster/NonRundant.gene_name &&\\
+        ## 测试下直接利用nucleotide聚类产生的差异
+        # 获取代表性基因名称
+        ~/.conda/envs/python2_lmt/bin/seqkit \\
+            seq -n \\
+            {cdhit_protein} \\
+            > {self.projdir}/3.GenePrediction/Cluster/NonRundant.gene_name &&\\
 
-        # # 获取核酸方面的代表性序列
-        # ~/.conda/envs/python2_lmt/bin/seqkit  \\
-        #     grep \\
-        #     {self.projdir}/3.GenePrediction/Cluster/total.nucleotide.fa  \\
-        #     -f {self.projdir}/3.GenePrediction/Cluster/NonRundant.gene_name  \\
-        #     > {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa &&\\
+        # 获取核酸方面的代表性序列
+        ~/.conda/envs/python2_lmt/bin/seqkit  \\
+            grep \\
+            {self.projdir}/3.GenePrediction/Cluster/total.nucleotide.fa  \\
+            -f {self.projdir}/3.GenePrediction/Cluster/NonRundant.gene_name  \\
+            > {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa &&\\
 
         ## 对聚类之后的结果进行统计分析
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/stat_cds_info.py \\
@@ -208,9 +208,9 @@ class Prediction:
             --infile {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.stat_fa \\
             --result_suffix {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide
 
-        # # 对代表性核酸序列建立索引,后续统计丰度需要
-        # bowtie2-build -f {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa \\
-        #         {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide
+        # 对代表性核酸序列建立索引,后续统计丰度需要
+        bowtie2-build -f {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa \\
+                {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide
         ''')
         shellname = f'{self.projdir}/3.GenePrediction/Cluster/nucleotide_cdhit.sh'
         utils.write_cmd(cmd, shellname)
@@ -219,25 +219,25 @@ class Prediction:
     def stat_abundance(self, sampleID):
         ref = f'{self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide'
         cmd = textwrap.dedent(f'''
-        # # bowtie2 比对; 20gb,4t
-        # bowtie2 -p 4 \\
-        #     -x {ref} \\
-        #     -1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
-        #     -2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
-        #     --end-to-end --sensitive -I 200 -X 400 \\
-        #     -S {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.abundance.sam  &&\\
+        # bowtie2 比对; 20gb,4t
+        bowtie2 -p 4 \\
+            -x {ref} \\
+            -1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
+            -2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
+            --end-to-end --sensitive -I 200 -X 400 \\
+            -S {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.abundance.sam  &&\\
 
-        # # gene支持数,同时剔除支持数<=2的基因
-        # grep -v '^@'  {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.abundance.sam  \\
-        #     | cut -f3 | awk '{{if($1 != "*")print $0}}'  \\
-        #     | sort | uniq -c |  awk 'BEGIN{{FS=" "; OFS=","}}{{print $2, $1}}' \\
-        #     | awk 'BEGIN{{FS=",";OFS=","}}{{if($2>2)print $1, $2}}' \\
-        #     > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.count.csv &&\\
+        # gene支持数,同时剔除支持数<=2的基因
+        grep -v '^@'  {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.abundance.sam  \\
+            | cut -f3 | awk '{{if($1 != "*")print $0}}'  \\
+            | sort | uniq -c |  awk 'BEGIN{{FS=" "; OFS=","}}{{print $2, $1}}' \\
+            | awk 'BEGIN{{FS=",";OFS=","}}{{if($2>2)print $1, $2}}' \\
+            > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.count.csv &&\\
 
         # # 统计基因长度信息
-        # bioawk -c fastx  '{{print $name, length($seq)}}' \\
-        #     {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa \\
-        #     | tr '\t' ',' > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.length.csv  &&\\
+        bioawk -c fastx  '{{print $name, length($seq)}}' \\
+            {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa \\
+            | tr '\t' ',' > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.length.csv  &&\\
 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/get_abundance_table.py \\
             --gene_count {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.count.csv  \\
@@ -256,6 +256,7 @@ class Prediction:
             table = f'{self.projdir}/3.GenePrediction/{sample}/{sample}.abundance.table'
             table_list.append(table)
         table_files = " ".join(table_list)
+        
         cmd = textwrap.dedent(f'''
         ## 获取汇总的相对丰度表格,基因计数表格
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/merge_abundance_table.py \\

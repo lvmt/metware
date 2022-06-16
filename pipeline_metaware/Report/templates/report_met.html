@@ -62,6 +62,76 @@
       subMenu.style.display = "none";
     }
 
+
+     // 表格筛选函数
+     $(function() {
+        var $table = $('#table').tablesorter({
+        theme: 'blue',
+        widgets: ["zebra", "filter"],
+        widgetOptions : {
+            // filter_anyMatch replaced! Instead use the filter_external option
+            // Set to use a jQuery selector (or jQuery object) pointing to the
+            // external filter (column specific or any match)
+            filter_external : '.search',
+            // add a default type search to the first name column
+            filter_defaultFilter: { 1 : '~{query}' },
+            // include column filters
+            filter_columnFilters: true,
+            filter_placeholder: { search : 'Search...' },
+            filter_saveFilters : true,
+            filter_reset: '.reset'
+        }
+        });
+
+        // make demo search buttons work
+        $('button[data-column]').on('click', function() {
+        var $this = $(this),
+            totalColumns = $table[0].config.columns,
+            col = $this.data('column'), // zero-based index or "all"
+            filter = [];
+
+        // text to add to filter
+        filter[ col === 'all' ? totalColumns : col ] = $this.text();
+        $table.trigger('search', [ filter ]);
+        return false;
+        });
+
+        });
+
+     // 表格筛选函数
+     $(function() {
+        var $table = $('#table2').tablesorter({
+        theme: 'blue',
+        widgets: ["zebra", "filter"],
+        widgetOptions : {
+            // filter_anyMatch replaced! Instead use the filter_external option
+            // Set to use a jQuery selector (or jQuery object) pointing to the
+            // external filter (column specific or any match)
+            filter_external : '.search',
+            // add a default type search to the first name column
+            filter_defaultFilter: { 1 : '~{query}' },
+            // include column filters
+            filter_columnFilters: true,
+            filter_placeholder: { search : 'Search...' },
+            filter_saveFilters : true,
+            filter_reset: '.reset'
+        }
+        });
+
+        // make demo search buttons work
+        $('button[data-column]').on('click', function() {
+        var $this = $(this),
+            totalColumns = $table[0].config.columns,
+            col = $this.data('column'), // zero-based index or "all"
+            filter = [];
+
+        // text to add to filter
+        filter[ col === 'all' ? totalColumns : col ] = $this.text();
+        $table.trigger('search', [ filter ]);
+        return false;
+        });
+
+        });
     
   </script>
 {% endblock script %}
@@ -232,32 +302,55 @@
 <div>
     <p>采用 Illumina测序平台测序获得的原始数据(Raw Data)存在一定比例低质量数据，为了保证后续分析的结果准确可靠，需要对原始的测序数据进行预处理，获取用于后续分析的有效数据(Clean Data)。具体处理步骤如下：</p>
     <ol>
-        <li>去除所含低质量碱基（质量值<=38）超过一定比例（默认设为 40bp）的 reads； </li>
-        <li>去除 N 碱基达到一定比例的 reads（默认设为10bp）； </li>
-        <li>去除与 Adapter 之间 overlap 超过一定阈值（默认设为 15bp）的 reads；</li>
+        <li>去除所含低质量碱基（质量值< 15）超过一定比例（默认设为 40%）的 reads； </li>
+        <li>去除 N 碱基达到一定比例的 reads（默认为5bp）； </li>
+        <li>去除Adapter 序列, fastp默认值；</li>
+        <li>去除长度小于15bp的序列；</li>
         <li>如果样品存在宿主污染，需与宿主序列进行比对，过滤掉可能来源于宿主<sup>[6,7,8]</sup>（默认采用 Bowtie2 软件，参数设置: --end-to-end, --sensitive, -I 200, -X 400）的 reads；</li>
     </ol>
+    <p style="font-size: 0.9em;"><b>上述的处理步骤均是对 Read 1 和 Read 2 进行操作</b></p>
 
-    <p class="center"><small>上述的处理步骤均是对 Read 1 和 Read 2 进行操作。测序数据预处理统计结果见表 3-1。</small></p>
+    <p class="center"><small>测序数据预处理统计结果见表 3-1</small></p>
 
     <div id="tab">
-        <table frame=hsides border="1" class="gy" style='border-collapse:collapse;width:80%;margin:auto;text-align:center'>
-            {% for each in qc_stat_list %}
-            <tr>
-                {% for x in each %}
-                <td>{{x|safe}}
-                </td>
+        <table id="table" class="tablesorter"  style='border-collapse:collapse;width:80%;margin:auto;text-align:center;font-size: 0.7em;'>
+            <thead>
+                <tr>
+                    {% for x in qc_stat_list[0] %}
+                    <td>{{x|safe}}</td>
+                    {% endfor %}
+                </tr>
+                
+            </thead>
+
+            <tbody>
+                {% for each in qc_stat_list[1:] %}
+                <tr>
+                    {% for x in each %}
+                    <td>{{x|safe}}</td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
+            </tbody>
         </table>
     </div>
 
-    <p class="center">
-        <small>说明：#Sample 表示样品名称；RawData 表示下机原始数据；CleanData 表示过滤得到的有效数据；Clean_Q20，Clean_Q30 表示 数据 中测序错误率小于0.01(质量值大于 20)和 0.001(质量值大于 30)的碱基数目的百分比；
-            Clean_GC(%) 表示 CleanData 中碱基的 GC 含量；
+    <div style="align-items: center;">
+        <p style="font-size:0.8em">说明：</p>
+        <small>
+            <p class="tremark">Sample表示样本名</p>
+            <p class="tremark">RawData：表示下机原始数据</p>
+            <p class="tremark">Clean：表示过滤得到的有效数据</p>
+            <p class="tremark">bases：数据中碱基数目</p>
+            <p class="tremark">Q20：表示 数据 中测序错误率小于0.01(质量值大于 20)</p>
+            <p class="tremark">Q30：表示 数据 中测序错误率小于0.001(质量值大于 30)</p>
+            <p class="tremark">GC：数据中碱基的 GC 含量</p>
         </small>
-    </p>
+    </div>
+    <p style="font-size: 0.9em;">结果目录：</p>
+    <p class="tremark">- 质控后的fasta序列见：result/01.CleanData/sample/*.1(2).gz（示例：HC1.final.1.gz; HC1.final.2.gz）</p>
+    <p class="tremark">- 各个样本质控后QC统计详细结果见：result/01.CleanData/sample/*.stat.txt（示例：HC1.stat.txt）</p>
+    <p class="tremark">- 各个样本fasta序列的md5值：result/01.CleanData/sample/md5.txt</p>
 
     <p class="head">
         <a href="https://www.metware.cn/" target="_blank">
@@ -273,35 +366,55 @@
 <h3><a name="Metagenome 组装"> </a>3.2 Metagenome 组装</h3>
 <div>   
     <ol>
-        <li>经过预处理后得到 Clean Data，使用 MEGAHIT 组装软件进行组装分析( Assembly Analysis )；组装参数：--presets meta-large </li>
-        <li>将各样品质控后的 CleanData 采用 Bowtie2 软件比对至各样品组装后的 Scaftigs 上，获取未被利用上的 PE reads；比对参数[11,6] ：--end-to-end, --sensitive, -I 200, -X 400</li>
+        <li>经过预处理后得到 Clean Data，使用 MEGAHIT 组装软件进行组装分析( Assembly Analysis )；组装参数： --k-min 35 --k-max 95 --min-contig-len 500</li>
+        <li>将各样品质控后的 CleanData 采用 Bowtie2 软件比对至各样品组装后的 Scaftigs 上，获取未被利用上的 PE reads；比对参数<sup>[11,6]</sup>： -I 200, -X 400</li>
         <li>将各样品未被利用上的 reads 放在一起，进行混合组装<sup>[7,10]</sup>，组装参数与单样品组装参数相同；</li>
-        <li>对于单样品和混合组装生成的 Scaftigs，过滤掉 500bp<sup>[12,6,13,14]</sup> 以下的片段，并进行统计分析和后续基因预测；</li>
+        <li>对于单样品和混合组装生成的 Scaftigs<sup>[12,6,13,14]</sup> ，并进行统计分析和后续基因预测；</li>
+        <li>利用QUAST对组装结果进行评估；</li>
     </ol>
 
     <p class="center"><small>表 3.2 各样品组装结果 Scaftigs 基本信息统计（>=500bp）</small></p>
     <div id="tab">
-        <table frame=hsides class='gy' style='border-collapse:collapse;width:80%;margin:auto;text-align:center'>
-            {% for each in assembly_stat_list %}
-            <tr>
-                {% for x in each %}
-                <td>{{x|safe}}
-                </td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
+        <table id="table2" class="tablesorter" style='border-collapse:collapse;width:80%;margin:auto;text-align:center;font-size: 0.7em;'>
+            <thead>
+                <tr>
+                    {% for x in assembly_stat_list[0] %}
+                    <td>
+                        {{x|safe}}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for each in assembly_stat_list[1:] %}
+                <tr>
+                    {% for x in each %}
+                    <td>{{x|safe}}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor%}
+            </table> 
         </table>
     </div>
 
-    <p class="center">
-        <small>说明：*contigs表示样品名称（其中，unmap_reads 表示混合组装结果）；Total Len.（bp）表示组装得 Scaftigs 的总长；# contigs . 表示组装得到的 Scaftigs 条数；
-            N50表示将 Scaftigs 按照长度进行排序，然后由长到短加和，当加和值达到 Scaftigs 总长的 50% Scaftigs 的长度值；Max Len. 表示组装得到的最长 Scaftigs 的长度值。
+    <div>
+        <p style="font-size:0.8em">说明：</p>
+        <small>
+            <p class="tremark">index：样本名称</p>
+            <p class="tremark"># contigs：表示组装得到的 Scaftigs 条数</p>
+            <p class="tremark">Total Len：表示组装得 Scaftigs 的总长</p>
+            <p class="tremark">Largest length：表示contigs的最大长度</p>
+            <p class="tremark">N50：N50表示将 Scaftigs 按照长度进行排序，然后由长到短加和，当加和值达到 Scaftigs 总长的 50% Scaftigs 的长度值</p>
+            <p class="tremark"></p>
+            <p class="tremark"></p>
         </small>
-    </p>
+    </div>
 
-    <p>结果目录：</p>
-    <p>按照长度500进行过滤后, 所有的组装结果(unmap为混合组装)见：result/02.Assembly/sample.contigs.fa；</p>
-
+    <p style="font-size: 0.9em;">结果目录：</p>
+    <p class="tremark">- 各个样品对应的组装结果：result/02.Assembly/sample/*.contigs.fa；示例（HC1.contigs.fa）</p>
+    <p class="tremark">- 各个样品对应的组装contigs的QUAST的评估结果：result/02.Assembly/sample/report.txt</p>
+   
     <p class="head">
         <a href="https://www.metware.cn/" target="_blank">
             <img class="logo" src="src/images/logo-met.jpg" align="left">

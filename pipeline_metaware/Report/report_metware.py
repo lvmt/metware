@@ -1,4 +1,5 @@
 import argparse
+import pandas as pd
 import pydoc
 from jinja2 import Environment, FileSystemLoader
 import os
@@ -45,10 +46,14 @@ with open(qc_stat_file, 'r') as fr:
 ## assembly
 assembly_stat_list = []
 assembly_stat_file = '{projdir}/2.Assembly/all.samples.assembly_assessment.txt'.format(**args)
-with open(assembly_stat_file, 'r') as fr:
-    for line in fr:
-        linelist = line.strip('\n').split('\t')
-        assembly_stat_list.append(linelist)
+ass_df = pd.read_csv(assembly_stat_file, sep='\t', index_col=0).T.reset_index()
+assembly_stat_list.append(ass_df.columns)
+assembly_stat_list.extend(map(list, ass_df.values))
+print(assembly_stat_list)
+# with open(assembly_stat_file, 'r') as fr:
+#     for line in fr:
+#         linelist = line.strip('\n').split('\t')
+#         assembly_stat_list.append(linelist)
 
 
 ## gene prediction 
