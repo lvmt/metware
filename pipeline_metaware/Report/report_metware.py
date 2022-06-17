@@ -1,4 +1,6 @@
 import argparse
+from random import sample
+from urllib.error import ContentTooShortError
 import pandas as pd
 import pydoc
 from jinja2 import Environment, FileSystemLoader
@@ -20,10 +22,29 @@ parser.add_argument('--projdir', help='项目分析目录')
 parser.add_argument('--sample_file', help='样本信息配置文件')
 parser.add_argument('--template_dir', help='报告模板')
 parser.add_argument('--report', help='截图报告输出')
-parser.add_argument('--pdf', help='是否输出pdf结果', default='yes')
+parser.add_argument('--pdf', help='是否输出pdf结果', choices=['yes', 'no'], default='no')
 
 
 args = vars(parser.parse_args())
+
+
+def get_samples(sample_file):
+    samples = []
+    with open(sample_file, 'r') as fr:
+        for line in fr:
+            if line.startswith('#'):
+                continue
+            linelist = line.strip('\n').split('\t')
+            samples.append(linelist[0])
+    return samples 
+
+
+
+
+############################################################################
+samples = get_samples(args['sample_file'])
+
+
 
 
 ## 获取模板变量
@@ -33,14 +54,36 @@ template = env.get_template('report_met.html')
 
 
 ######################## 解析文档填充内容 
+## 样本基本信息
+sample_info = []
+with open(args['sample_file'], 'r') as fr:
+    for line in fr:
+        if line.startswith('#'):
+            continue
+        linelist = line.strip('\n').split('\t')
+        sampleid = linelist[0]
+        group = linelist[1]
+        sample_info.append([sampleid, group])
 
-## qc 
+
+###############################  qc 
+os.system('mkdir -p {report}/src/pictures/1.Clean/'.format(**args))
 qc_stat_list = []
 qc_stat_file = '{projdir}/1.Clean/all.samples.stat.txt'.format(**args)
 with open(qc_stat_file, 'r') as fr:
     for line in fr:
         linelist = line.strip('\n').split('\t')
         qc_stat_list.append(linelist)
+
+gc_png_list = []
+for sample in samples:
+    os.system('cp {projdir}/1.Clean/{sample}/{sample}.read1.qual.png {report}/src/pictures/1.Clean/'.format(**locals(), **args))
+    os.system('cp {projdir}/1.Clean/{sample}/{sample}.read2.qual.png {report}/src/pictures/1.Clean/'.format(**locals(), **args))
+    os.system('cp {projdir}/1.Clean/{sample}/{sample}.read1.GC.png {report}/src/pictures/1.Clean/'.format(**locals(), **args))
+    os.system('cp {projdir}/1.Clean/{sample}/{sample}.read2.GC.png {report}/src/pictures/1.Clean/'.format(**locals(), **args))
+    gc_png_list.append(f'src/pictures/1.Clean/{sample}.read1.GC.png')
+    gc_png_list.append(f'src/pictures/1.Clean/{sample}.read2.GC.png')
+
 
 
 ## assembly
@@ -49,7 +92,7 @@ assembly_stat_file = '{projdir}/2.Assembly/all.samples.assembly_assessment.txt'.
 ass_df = pd.read_csv(assembly_stat_file, sep='\t', index_col=0).T.reset_index()
 assembly_stat_list.append(ass_df.columns)
 assembly_stat_list.extend(map(list, ass_df.values))
-print(assembly_stat_list)
+# print(assembly_stat_list)
 # with open(assembly_stat_file, 'r') as fr:
 #     for line in fr:
 #         linelist = line.strip('\n').split('\t')
@@ -70,14 +113,16 @@ os.system('cp {projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa.
 
 
 
-############################# 模板填充 
+############################# 模板填充 ###############################################
 os.system('mkdir -p {report}/src'.format(**args))
 os.system('cp -r templates/src/* {report}/src'.format(**args))
 outhtml = os.path.abspath(os.path.join(args['report'], 'report.final.html'))
 
 
 context = {}
+context['sample_info'] = sample_info
 context['qc_stat_list'] = qc_stat_list
+context['gc_png_list'] = gc_png_list
 context['assembly_stat_list'] = assembly_stat_list
 context['uniq_gene_stat_list'] = uniq_gene_stat_list
 

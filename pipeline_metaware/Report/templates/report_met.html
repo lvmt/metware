@@ -162,12 +162,13 @@
 
         <li onmouseover="displaySubMenu(this)" onmouseout="hideSubMenu(this)"><a href="#分析结果">3 分析结果</a>
             <ul>
-                <li><a href="#测序数据预处理"><i class="icon-angle-right"></i>3.1 测序数据预处理</a></li>
-                <li><a href="#Metagenome 组装"><i class="icon-angle-right"></i> 3.2 Metagenome 组装</a></li>
-                <li><a href="#基因预测及丰度分析"><i class="icon-angle-right"></i>3.3 基因预测及丰度分析</a></li>
-                <li><a href="#物种注释"><i class="icon-angle-right"></i>3.4 物种注释</a></li>
-                <li><a href="#常用功能数据库注释"><i class="icon-angle-right"></i>3.5 常用功能数据库注释</a></li>
-                <li><a href="#抗性基因注释"><i class="icon-angle-right"></i>3.6 抗性基因注释</a></li>
+                <li><a href="#样品基本信息"><i class="icon-angle-right"></i>3.1 样品基本信息</a></li>
+                <li><a href="#测序数据预处理"><i class="icon-angle-right"></i>3.2 测序数据预处理</a></li>
+                <li><a href="#Metagenome 组装"><i class="icon-angle-right"></i> 3.3 Metagenome 组装</a></li>
+                <li><a href="#基因预测及丰度分析"><i class="icon-angle-right"></i>3.4 基因预测及丰度分析</a></li>
+                <li><a href="#物种注释"><i class="icon-angle-right"></i>3.5 物种注释</a></li>
+                <li><a href="#常用功能数据库注释"><i class="icon-angle-right"></i>3.6 常用功能数据库注释</a></li>
+                <li><a href="#抗性基因注释"><i class="icon-angle-right"></i>3.7 抗性基因注释</a></li>
             </ul>
         </li>
         
@@ -298,7 +299,32 @@
 
 <!----------------------------------3 分析模块-------------------------------------------------------->
 <h2><a name='分析结果'></a>3 分析结果</h2>
-<h3><a name='测序数据预处理'></a>3.1 测序数据预处理</h3>
+
+
+<h3><a name="样品基本信息"></a>3.1 样品基本信息</h3>
+<div> 
+    <p>下表展示了各个样品的基本信息</p>
+    <p class="center"><small>表3.1 样品信息表</small></p>
+    <table width="70%" border="1" cellspacing="0" cellpadding="0" align="center" class="gy" style='border-collapse:collapse;width:80%;margin:auto;text-align:center'>
+        <tbody>
+            <tr><th>SampleID</th><th>Group</th></tr>
+            {% for row in sample_info %}
+            <tr>
+                {% for each in row %}
+                <td>
+                    {{each|safe}}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+<!--------------------------------------- 3.2 测序数据预处理 ---------------------------------------------->
+<h3><a name='测序数据预处理'></a>3.2 测序数据预处理</h3>
 <div>
     <p>采用 Illumina测序平台测序获得的原始数据(Raw Data)存在一定比例低质量数据，为了保证后续分析的结果准确可靠，需要对原始的测序数据进行预处理，获取用于后续分析的有效数据(Clean Data)。具体处理步骤如下：</p>
     <ol>
@@ -310,7 +336,7 @@
     </ol>
     <p style="font-size: 0.9em;"><b>上述的处理步骤均是对 Read 1 和 Read 2 进行操作</b></p>
 
-    <p class="center"><small>测序数据预处理统计结果见表 3-1</small></p>
+    <p class="center"><small>表3.2 测序数据预处理统计</small></p>
 
     <div id="tab">
         <table id="table" class="tablesorter"  style='border-collapse:collapse;width:80%;margin:auto;text-align:center;font-size: 0.7em;'>
@@ -333,11 +359,10 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
 
-    <div style="align-items: center;">
-        <p style="font-size:0.8em">说明：</p>
-        <small>
+        <p class="tremark" style="text-indent: 0.2em;"><button type="button" class="hide_or_show">点击显示/隐藏注释信息</button></p>
+        <div class="HideOrVisible">
+            <p class="tremakr">说明：</p>
             <p class="tremark">Sample表示样本名</p>
             <p class="tremark">RawData：表示下机原始数据</p>
             <p class="tremark">Clean：表示过滤得到的有效数据</p>
@@ -345,12 +370,22 @@
             <p class="tremark">Q20：表示 数据 中测序错误率小于0.01(质量值大于 20)</p>
             <p class="tremark">Q30：表示 数据 中测序错误率小于0.001(质量值大于 30)</p>
             <p class="tremark">GC：数据中碱基的 GC 含量</p>
-        </small>
+        </div>
+
+        <p class="center"><small>图3.2 clean reads数据碱基分布图</small></p>
+        <div id="slider4" class="flexslider" style="margin:auto;width:550px;height:350px">
+            <ul class="slides">
+                {% for gc_png in gc_png_list %}
+                <li>
+                    <img src={{gc_png}} style="margin:auto;width:500px;height:300px" />
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
     </div>
-    <p style="font-size: 0.9em;">结果目录：</p>
-    <p class="tremark">- 质控后的fasta序列见：result/01.CleanData/sample/*.1(2).gz（示例：HC1.final.1.gz; HC1.final.2.gz）</p>
-    <p class="tremark">- 各个样本质控后QC统计详细结果见：result/01.CleanData/sample/*.stat.txt（示例：HC1.stat.txt）</p>
-    <p class="tremark">- 各个样本fasta序列的md5值：result/01.CleanData/sample/md5.txt</p>
+
+    
 
     <p class="head">
         <a href="https://www.metware.cn/" target="_blank">
@@ -363,7 +398,7 @@
 </div>
 
 
-<h3><a name="Metagenome 组装"> </a>3.2 Metagenome 组装</h3>
+<h3><a name="Metagenome 组装"> </a>3.3 Metagenome 组装</h3>
 <div>   
     <ol>
         <li>经过预处理后得到 Clean Data，使用 MEGAHIT 组装软件进行组装分析( Assembly Analysis )；组装参数： --k-min 35 --k-max 95 --min-contig-len 500</li>
@@ -425,11 +460,12 @@
 </div>
 
 
-<h3><a name="基因预测及丰度分析"></a>3.3 基因预测及丰度分析</h3>
-<h4>3.3.1 基因预测及丰度分析基本步骤</h4>
+<h3><a name="基因预测及丰度分析"></a>3.4 基因预测及丰度分析</h3>
+<h4>3.4.1 基因预测及丰度分析基本步骤</h4>
 <div>
     <ol>
-        <li>从各样品及混合组装的 Scaftigs（>=500bp）出发，采用 MetaGeneMark<sup>[15,7,16,14,17]</sup> 进行 ORF (Open Reading Frame) 预测，并从预测结果出发，过滤掉长度小于 100nt<sup>[18,11,10,12,13]</sup>的信息；预测参数：采用默认参数进行</li>
+        <li>从各样品及混合组装的 Scaftigs（>=500bp）出发，采用 MetaGeneMark<sup>[15,7,16,14,17]</sup> 进行 ORF (Open Reading Frame) 预测，预测参数：采用默认参数进行</li>
+        <li>从预测结果出发，过滤掉长度小于 100nt<sup>[18,11,10,12,13]</sup>的预测基因；并简化预测基因名称；</li>
         <li>对各样品及混合组装的 ORF 预测结果，采用 CD-HIT<sup>[19,20]</sup>软件进行去冗余，以获得非冗余的初始 gene catalogue（此处，操作上，将非冗余的连续基因编码的核酸序列称之为 genes<sup>[12]</sup>），默认以 identity 95%, coverage 90% 进行聚类<sup>[16,14]</sup>，并选取最长的序列为代表性序列；采用参数：-c 0.95, -G 0, -aS 0.9, -g 1, -d 0</li>
         <li>采用 Bowtie2，将各样品的 Clean Data 比对至初始 gene catalogue，计算得到基因在各样品中比对上的 reads 数目；比对参数<sup>[10,14]</sup>：--end-to-end, --sensitive, -I 200, -X 400</li>
         <li>过滤掉在各个样品中支持 reads 数目<=2<sup>[12]</sup> 的基因，获得最终用于后续分析的 gene catalogue（Unigenes）；</li>
@@ -451,7 +487,7 @@
 
 
 
-<h4>3.3.2 gene catalogue 基本信息统计</h4>
+<h4>3.4.2 gene catalogue 基本信息统计</h4>
 <div>
     <p class="center"><small>表 3.3.2 gene catalogue 基本信息统计表</small></p>
     <div id="tab">
@@ -467,7 +503,7 @@
         </table>
     </div>
 
-    <p class="tremark">ORFs NO. 表示 gene catalogue 中基因的数目；integrity:start 表示只含有起始密码子的基因数目及百分比；</p>
+    <p class="tremark">ORFs NO. 表示 gene catalogue 中基因的数目；</p>
     <p class="tremark">integrity:start 表示只含有起始密码子的基因数目及百分比；</p>
     <p class="tremark">integrity:end 表示只含有终止密码子的基因数目及百分比；</p>
     <p class="tremark">integrity:none 表示没有起始密码子也没有终止密码子的基因数目及百分比；</p>
@@ -495,7 +531,7 @@
 </div>
 
 
-<h4>3.3.3 core-pan 基因分析</h4>
+<h4>3.4.3 core-pan 基因分析</h4>
 <div>
     <p>从基因在各样品中的丰度表出发，可以获得各样品的基因数目信息，通过随机抽取不同数目的样品，可以获得不同数目样品组合间的基因数目，由此我们构建和绘制了 Core 和 Pan 基因的稀释曲线，图片展示如下：</p>
     <p class="center"><small>图 3-3-3 core-pan 基因稀释曲线</small></p>
@@ -515,7 +551,7 @@
 </div>
 
 
-<h4>3.3.4 基因数目差异分析</h4>
+<h4>3.4.4 基因数目差异分析</h4>
 <div>
     <p>为了考察组与组间的基因数目差异情况，绘制了组间基因数目差异箱图，展示结果如下：</p>
     <p class="center"><small>图 3.3.4.1 组间基因数目差异箱图</small></p>
@@ -542,7 +578,7 @@
 </div>
 
 
-<h4>3.3.5 基于基因数目的样品间相关性分析</h4>
+<h4>3.4.5 基于基因数目的样品间相关性分析</h4>
 <div>
     <p>生物学重复是任何生物学实验所必须的，高通量测序技术也不例外。样品间基因丰度相关性是检验实验可靠性和样本选择是否合理性的重要指标。相关系数越接近1，表明样品之间基因丰度模式的相似度越高。</p>
     <p class="center"><small>图 3.3.5 样品间相关系数热图</small></p>
@@ -563,8 +599,8 @@
 </div>
     
 
-<h3><a name="物种注释"></a>3.4 物种注释</h3>
-<h4>3.4.1 物种注释基本步骤</h4>
+<h3><a name="物种注释"></a>3.5 物种注释</h3>
+<h4>3.5.1 物种注释基本步骤</h4>
 <div>
     <ol>
         <li>使用genes 与各功能数据库进行比对·DIAMOND软件<sup>[24]</sup>将 Unigenes 与从 NCBI 的 NR(Version: 2018.01) 数据库中抽提出的细菌(Bacteria)、真菌(Fungi)、古菌(Archaea)和病毒(Viruses)序列进行比对（blastp，evalue <= 1e-5）<sup>[6]</sup>；</li>
@@ -585,7 +621,7 @@
 </div>
         
         
-<h4>3.4.2 物种相对丰度概况</h4>
+<h4>3.5.2 物种相对丰度概况</h4>
 <div>
     <p>为了综合而直观的展示各样品中，不同分类层级的物种相对丰度，我们采用 Krona<sup>[27]</sup> 对物种注释结果进行可视化展示，Krona 示例图如下所示，详细结果
         <a href="src/pictures/4.Taxonomy/krona.html" target="_blank">请点击。</a>
@@ -617,7 +653,7 @@
 </div>
 
         
-<h4>3.4.3 注释基因数目及相对丰度聚类分析</h4>
+<h4>3.5.3 注释基因数目及相对丰度聚类分析</h4>
 <div>
     <p>从不同分类层级的相对丰度表出发，选取丰度排名前 <b>35</b> 的属及它们在每个样品中的丰度信息绘制热图，并从物种层面进行聚类，便于结果展示和信息发现，从而找出样品中聚集较多的物种，结果展示见下图：</p>
     <p class="center"><small>图 3.4.3 属水平基因数目及丰度聚类热图</small></p>
@@ -637,7 +673,7 @@
 </div>
 
 
-<h4>3.4.4 基于物种丰度的降维分析</h4>
+<h4>3.5.4 基于物种丰度的降维分析</h4>
 <div>
     <p>目前适用于生态学研究的降维分析主要是主成分分析 (PCA，Principal Component Analysis)和无度量多维标定法（NMDS，Non-Metric Multi-Dimensional Scaling）分析。
         其中，PCA是基于线型模型的一种降维分析，它应用方差分解的方法对多维数据进行降维，从而提取出数据中最主要的元素和结构<sup>[28]</sup>；PCA 能够提取出最大程度反映样品间差异的两个坐标轴，
@@ -662,7 +698,7 @@
 </div>
 
         
-<h4>3.4.5 基于物种丰度的Bray-Curtis 距离的降维分析</h4>
+<h4>3.5.5 基于物种丰度的Bray-Curtis 距离的降维分析</h4>
 <div>
     <p>主坐标分析（PCoA，Principal Co-ordinates Analysis），是通过一系列的特征值和特征向量排序从多维数据中提取出最主要的元素和结构。
         我们基于Bray-Curtis 距离来进行PCoA分析，并选取贡献率最大的主坐标组合进行作图展示。如果样品距离越接近，表示物种组成结构越相似，
@@ -684,7 +720,7 @@
 </div>
 
 
-<h4>3.4.6 基于物种丰度的Anosim分析</h4>
+<h4>3.5.6 基于物种丰度的Anosim分析</h4>
 <div>
     <p>Anosim分析是一种非参数检验，用来检验组间的差异是否显著大于组内差异，从而判断分组是否有意义，详细计算过程可查看Anosim。基于物种门水平的Anosim分析结果如下：</p>
     <p class="center"><small>图 3.4.6 基于门水平的Anosim分析</small></p>
@@ -703,7 +739,7 @@
 </div>
         
 
-<h4>3.4.7 基于物种丰度的样品聚类分析</h4>
+<h4>3.5.7 基于物种丰度的样品聚类分析</h4>
 <div>
     <p>为了研究不同样品的相似性，还可以通过对样品进行聚类分析，构建样品的聚类树。Bray-Curtis 距离是系统聚类法中使用最普遍的一个距离指标，它主要用来刻画样品间的相近程度，它的大小是进行样品分类的主要依据。 </p>
     <p>从基因在各样品中的丰度表出发，以 Bray-Curtis 距离矩阵进行样品间聚类分析，并将聚类结果与各样品在门水平上的物种相对丰度整合进行展示。 </p>
@@ -724,7 +760,7 @@
 </div>
         
         
-<h4>3.4.8 组间差异物种的Metastat分析</h4>
+<h4>3.5.8 组间差异物种的Metastat分析</h4>
 <div>
     <p>为了研究组间具有显著性差异的物种，从不同层级的物种丰度表出发，利用 Metastats<sup>[30]</sup>方法对组间的物种丰度数据进行假设检验得到 p 值，通过对 p 值的校正，得到 q 值；最后根据 q 值筛选具有显著性差异的物种，并绘制差异物种在组间的丰度分布箱图。</p>
     <p class="center"><small>图 3.4.8.1 显著差异物种的箱图展示树</small></p>
@@ -744,7 +780,7 @@
 </div>
         
         
-<h4>3.4.9 组间差异物种的LEfSe分析</h4>
+<h4>3.5.9 组间差异物种的LEfSe分析</h4>
 <div>
     <p>为了筛选组间具有显著差异的物种Biomarker，首先通过秩和检验的方法检测不同分组间的差异物种并通过LDA（线性判别分析）实现降维并评估差异物种的影响大小，
         即得到LDA score <sup>[31]</sup>；组间差异物种的LEfSe分析结果包括三部分，分别是LDA值分布柱状图，进化分支图（系统发育分布）和组间具有统计学差异的Biomarker在不同组中丰度比较图。差异物种的LDA值分布图和进化分支图如下：
@@ -773,7 +809,7 @@
         
         
 
-<h3><a name="常用功能数据库注释"></a>3.5 常用功能数据库注释</h3>
+<h3><a name="常用功能数据库注释"></a>3.6 常用功能数据库注释</h3>
 <div>
     <p><b>目前常用的功能数据库主要有：</b></p>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;Kyoto Encyclopedia of Genes and Genomes (KEGG)<sup>[32,33]</sup>; Version: 2018.01；</p>
@@ -801,7 +837,7 @@
 </div>
         
 
-<h4>3.5.1 功能注释基本步骤</h4>
+<h4>3.6.1 功能注释基本步骤</h4>
 <div>
     <ol>
         <li>使用DIAMOND软件将 Unigenes 与各功能数据库进行比对（blastp，evalue <= 1e-5）<sup>[26,14]；</sup></li>
@@ -843,7 +879,7 @@
 </div>
 
 
-<h4>3.5.2 注释基因数目统计</h4>
+<h4>3.6.2 注释基因数目统计</h4>
 <div>
     <p>从 Unigenes 注释结果出发，绘制各个数据库的注释基因数目统计图，展示结果如下图所示：</p>
     <p class="center"><small>图 3.5.2.1 各数据库注释基因数目统计图</small></p>
@@ -879,7 +915,7 @@
 </div>
    
 
-<h4>3.5.3 功能相对丰度概况</h4>
+<h4>3.6.3 功能相对丰度概况</h4>
 <div>
     <p>根据各个数据库的注释结果，绘制了样品（组）在各个数据库中对应层级上的相对丰度统计图。 以各样品在各个数据库中level1 层级上的相对丰度统计图为例展示。其余层级为相对丰度前10的注释结果。</p>
     <p class="center"><small>图 3.5.3 功能注释在 level1 上的相对丰度柱形图</small></p>
@@ -915,7 +951,7 @@
 </div>
         
         
-<h4>3.5.4 功能相对丰度聚类分析</h4>
+<h4>3.6.4 功能相对丰度聚类分析</h4>
 <div>
     <p>根据所有样品在各个数据库中的功能注释及丰度信息，选取丰度排名前 35 的功能及它们在每个样品中的丰度信息绘制热图，并从功能差异层面进行聚类。</p>
     <p class="center"><small>图 3.5.4 功能丰度聚类热图</small></p>
@@ -952,7 +988,7 @@
 
 
 
-<h4>3.5.5 基于功能丰度的降维分析</h4>
+<h4>3.6.5 基于功能丰度的降维分析</h4>
 <div>
     <p>基于不同数据库在各个分类层级的功能丰度进行 PCA 和 NMDS 降维分析，如果样品的功能组成越相似，则它们在降维图中的距离越接近。基于KEGG的KO、eggNOG的OG和CAZY 的 Level2 层级的功能丰度进行PCA 和 NMDS 分析的结果展示如下：</p>
     <p class="center"><small>图 3.5.5 基于功能丰度的 PCA 和 NMDS 分析结果展示</small></p>
@@ -991,7 +1027,7 @@
 </div>
         
         
-<h4>3.5.6 基于功能丰度的Bray-Curtis 距离的降维分析</h4>
+<h4>3.6.6 基于功能丰度的Bray-Curtis 距离的降维分析</h4>
 <div>
     <p>基于不同数据库在各个分类层级的功能丰度计算Bray-Curtis 距离，然后进行 PCoA 分析，如果样品的功能组成越相似，则它们在降维图中的距离越接近。基于KEGG、eggNOG和CAZY 的 Level1 层级的功能丰度进行PCoA 分析的结果展示如下：</p>
     <p class="center"><small>图 3.5.6 基于功能丰度的Bray-Curtis 距离的PCoA分析结果展示</small></p>
@@ -1029,7 +1065,7 @@
 </div>
 
         
-<h4>3.5.7 基于功能丰度的Anosim分析</h4>
+<h4>3.6.7 基于功能丰度的Anosim分析</h4>
 <div>
     <p>基于KEGG的KO、eggNOG的Level1和CAZY 的 Level2 层级的功能丰度进行Anosim 分析，用于检验基于功能丰度的组间差异是否显著大于组内差异。结果展示如下：</p>
     <p class="center"><small>图 3.5.7 基于功能丰度的 Anosim 分析</small></p>
@@ -1067,7 +1103,7 @@
 
 
 
-<h4>3.5.8 基于功能丰度的样品聚类分析</h4>
+<h4>3.6.8 基于功能丰度的样品聚类分析</h4>
 <div>
     <p>为了研究不同样品的相似性，还可以通过对样品进行聚类分析，构建样品的聚类树。Bray-Curtis 距离是系统聚类法中使用最普遍的一个距离指标，它主要用来刻画样品间的相近程度，它的大小是进行样品分类的主要依据。</p>
     <p>从各个数据库的功能丰度表出发，以 Bray-Curtis 距离矩阵进行样品间聚类分析，并将聚类结果与各样品在各数据库第一层级上的功能相对丰度整合展示。 </p>
@@ -1105,7 +1141,7 @@
 </div>
         
         
-<h4>3.5.9 组间功能差异的Metastat分析</h4>
+<h4>3.6.9 组间功能差异的Metastat分析</h4>
 <div>
     <p>为了研究组间具有显著性差异的功能，从不同层级的功能相对丰度表出发，利用 Metastats 方法对组间的功能丰度数据进行假设检验得到 p 值，通过对 p 值的校正，
         得到 q 值；最后根据 q 值筛选具有显著性差异的功能，并绘制差异功能在组间的丰度分布箱图。
@@ -1171,7 +1207,7 @@
 </div>
 
 
-<h4>3.5.10 代谢通路比较分析  </h4>
+<h4>3.6.10 代谢通路比较分析  </h4>
 <div>
     <p>为了研究不同分组（不同样品）在代谢通路图中的差异，绘制了代谢通路网页版结果展示，整体网页版报告分为两部分：</p>
     <p>第一部分为 KEGG 9 大 pathway overview 图，图中，展示了两个分组（或两个样品）共有及特有的代谢通路信息，在代谢通路图中，节点代表各种化合物，边代表一系列的酶类反应，
@@ -1196,7 +1232,7 @@
         
 
 
-<h3><a name="抗性基因注释"></a>3.6 抗性基因注释</h3>
+<h3><a name="抗性基因注释"></a>3.7 抗性基因注释</h3>
 <div>
     <p>不管是人肠道微生物还是其他环境微生物中，抗性基因是普遍存在的。抗生素的滥用导致人体和环境中微生物群落发生不可逆的变化，对人体健康和生态环境造成风险，
         因此抗性基因的相关研究受到了研究者的广泛关注[38]。CARD是近年来新出现的抗性基因数据库，它具有信息全面，对用户友好，更新维护及时等优势。该数据库的核心构成
@@ -1205,7 +1241,7 @@
 </div>
 
 
-<h4>3.6.1 抗性基因注释基本步骤</h4>
+<h4>3.7.1 抗性基因注释基本步骤</h4>
 <div>
     <ol>
         <li>使用CARD数据库(v2.0.1)提供的Resistance Gene Identifier (RGI)软件将 Unigenes 与CARD数据库进行比对（RGI内置blastp，采用bitscore值对比对结果进行评分<sup>[40]</sup>）；</li>
@@ -1223,7 +1259,7 @@
 </div>
         
 
-<h4>3.6.2 抗性基因丰度概况</h4>
+<h4>3.7.2 抗性基因丰度概况</h4>
 <div>
     <p>从抗性基因的相对丰度表出发，计算各个样品中ARO的含量和百分比，筛选出最大丰度排名前20的ARO结果展示如下：</p>
     <p class="center"><small>图 3.6.2.1 不同ARO在各样品中的丰度柱形图</small></p>
@@ -1258,7 +1294,7 @@
 </div>
 
         
-<h4>3.6.3 抗性基因类型的分布及其丰度聚类分析</h4>
+<h4>3.7.3 抗性基因类型的分布及其丰度聚类分析</h4>
 <div>
     <p>为了反映各抗性基因类型（ARO） 在各样品中的分布情况，绘制ARO分布的黑白热图；同时，根据 ARO 在各样品中的丰度信息，选取排名前 30 的 ARO绘制丰度聚类热图，结果展示如下：</p>
     <p class="center"><small>图 3.6.3 ARO分布及丰度聚类热图</small></p>
@@ -1279,7 +1315,7 @@
 </div>
         
         
-<h4>3.6.4 基于抗性基因丰度的Anosim分析</h4>
+<h4>3.7.4 基于抗性基因丰度的Anosim分析</h4>
 <div>
     <p>基于抗性基因的丰度进行Anosim 分析，用于检验组间差异是否显著大于组内差异。结果展示如下：</p>
     <p class="center"><small>图 3.6.4基于抗性基因丰度的Anosim分析</small></p>
@@ -1300,7 +1336,7 @@
 </div>
 
 
-<h4>3.6.5 组间抗性基因数目差异分析</h4>
+<h4>3.7.5 组间抗性基因数目差异分析</h4>
 <div>
     <p>为了考察样品组间的抗性基因数目与ARO数目差异情况，绘制了组间抗性基因数目和ARO数目差异箱图，展示结果如下:</p>
     <p class="center"><small>图 3.6.5.1 抗性基因及ARO数目差异箱图</small></p>
