@@ -51,7 +51,7 @@ def main(args):
         'class': 3,
         'order': 4,
         'family': 5,
-        'Genus': 6,
+        'genus': 6,
         'species': 7
     }
     #################### 样本维度 进行层级拆分

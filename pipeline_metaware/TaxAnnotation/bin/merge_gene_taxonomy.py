@@ -30,10 +30,10 @@ def get_samples(sample_file):
 
 def main(args):
     samples = get_samples(args['sample_file'])
-    tax = pd.read_csv(args['taxonomy_tabel'], sep='\t')
+    tax = pd.read_csv(args['taxonomy_table'], sep='\t')
     tax = tax.drop(columns=['taxid'])
     gene = pd.read_csv(args['gene_table'], sep='\t')
-    merge_df = pd.merge(tax, gene, on='gene', how='outer').fillna('k__Other|p__Other|c__Other|o__Other|f__Other|g__Other|s__Other')
+    merge_df = pd.merge(tax, gene, on='gene', how='outer').fillna('k__Others|p__Others|c__Others|o__Others|f__Others|g__Others|s__Others')
     
     # 因为是统计基因的数目,因此我们需要把样本中大于0的数修改为1,便于后续的分组统计.
     for sample in samples:
@@ -46,24 +46,25 @@ def main(args):
         'class': 3,
         'order': 4,
         'family': 5,
-        'Genus': 6,
+        'genus': 6,
         'species': 7
     }
     for _class in class_info:
-        merge_df['Taxonomy'] = merge_df['taxonomy'].apply(lambda x:'|'.join(x.split('|')[:class_info[_class]]))
-        class_df = merge_df.groupby('Taxonomy').agg('sum').reset_index()
-        class_df[_class] = class_df['Taxonomy'].apply(lambda x:'|'.join(x.split('|')[-2:])) 
+        merge_df['Taxonomy'] = merge_df['taxonomy'].apply(lambda x: '|'.join(x.split('|')[:class_info[_class]]))
+        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'unclassified' in x.split('|')[-1]), 'Taxonomy'] = 'Others'
+        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'Others' in x.split('|')[-1]), 'Taxonomy'] = 'Others'
+        stat_df = merge_df.groupby('Taxonomy').sum().reset_index()
+        stat_df[_class] = stat_df['Taxonomy'].apply(lambda x:'|'.join(x.split('|')[-2:])) 
         out = '{result_suffix}.{_class}.xls'.format(**args, **locals())
-        class_df.to_csv(out, sep='\t', index=None)
+        stat_df.to_csv(out, sep='\t', index=None)
 
 
-    ## 进行层级拆分(全部样本合并统计)
-    for _class in class_info:
+        ## 进行层级拆分(全部样本合并统计)
         out = '{result_suffix}.total.{_class}.xls'.format(**args, **locals())
-        merge_df['Detail_Taxonomy'] = merge_df['taxonomy'].apply(lambda x:'|'.join(x.split('|')[:class_info[_class]]))
+        # merge_df['Detail_Taxonomy'] = merge_df['taxonomy'].apply(lambda x:'|'.join(x.split('|')[:class_info[_class]]))
         _class_info = defaultdict(set)
 
-        for row in merge_df.loc[:, ['gene', 'Detail_Taxonomy']].values:
+        for row in merge_df.loc[:, ['gene', 'Taxonomy']].values:
             gene, tax = row 
             _class_info[tax].add(gene)
 
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='汇总')
     parser.add_argument('--gene_table', help='基因统计表格')
-    parser.add_argument('--taxonomy_tabel', help='物种注释表格')
+    parser.add_argument('--taxonomy_table', help='物种注释表格')
     parser.add_argument('--sample_file', help='样本信息配置文件')
     parser.add_argument('--result_suffix', help='输出结果前缀')
 
