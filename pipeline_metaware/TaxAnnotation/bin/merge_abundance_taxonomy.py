@@ -43,7 +43,7 @@ def main(args):
     # 某些基因在diamond比对过程中,会被舍弃掉，因此可能出现物种注释的基因和之前定量的基因数目存在差异
     # 在合并过程中,对于这些有差异的基因,认为其物种注释结果为others
     # 绝对不能将差异基因舍弃,否则前面的均一化结果就会失效,亲测
-    all_result = '{result_dir}/Absolute/{result_suffix}.total.xls'.format(**args)
+    all_result = '{result_dir}/Absolute/{result_suffix}.absolute.total.xls'.format(**args)
     merge_df.to_csv(all_result, sep='\t', index=None)
     class_info = {
         'kingdom': 1,
