@@ -12,11 +12,11 @@
 宏基因组组装步骤
 '''
 
-from ctypes import util
+
 import sys 
 import os 
 import textwrap
-
+import yaml
 
 try:
     from Utils import utils
@@ -31,7 +31,6 @@ class Meta_Assembly:
     def __init__(self, args):
         self.args = args
         self.projdir = args['projdir']
-        self.analysis_list = args['analysis_list']
         self.sample_file = args['sample_file']
         self.fq_info = utils.get_fq_info(self.sample_file)
 
@@ -41,22 +40,22 @@ class Meta_Assembly:
         utils.mkdirs(f'{self.projdir}/2.Assembly/{sampleID}')
         cmd = textwrap.dedent(f'''
         ## 单样本组装
-        # ~/.conda/envs/python2_lmt/bin/megahit \\
-        # -t 4 \\
-        # -1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
-        # -2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
-        # --out-dir {self.projdir}/2.Assembly/{sampleID}/megahit \\
-        # --out-prefix {sampleID} \\
-        # --k-min 35 \\
-        # --k-max 95 \\
-        # --k-step 20 \\
-        # --min-contig-len 500 \\
-        # --keep-tmp-files \\
-        # --continue  \\
-        # -f &&\\
+        ~/.conda/envs/python2_lmt/bin/megahit \\
+        -t 4 \\
+        -1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
+        -2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
+        --out-dir {self.projdir}/2.Assembly/{sampleID}/megahit \\
+        --out-prefix {sampleID} \\
+        --k-min 35 \\
+        --k-max 95 \\
+        --k-step 20 \\
+        --min-contig-len 500 \\
+        --keep-tmp-files \\
+        --continue  \\
+        -f &&\\
 
-        # ln -sf {self.projdir}/2.Assembly/{sampleID}/megahit/{sampleID}.contigs.fa \\
-        #     {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa &&\\
+        ln -sf {self.projdir}/2.Assembly/{sampleID}/megahit/{sampleID}.contigs.fa \\
+            {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa &&\\
 
         ## 组装结果评估
         python3 ~/pipeline/metagenomics/software/quast-4.6.3/quast.py \\
@@ -66,11 +65,11 @@ class Meta_Assembly:
             --plots-format png
 
         ## 获取未被利用的reads, 后续参与混合组装
-        # # /share/software/apps/anaconda2/bin/bowtie2建立所有存在问题
-        # /share/software/apps/bowtie2/2.3.4/bowtie2-build \\
-        #     -f {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa \\
-        #     {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs \\
-        #     --seed 1  &&\\
+        # /share/software/apps/anaconda2/bin/bowtie2建立所有存在问题
+        /share/software/apps/bowtie2/2.3.4/bowtie2-build \\
+            -f {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs.fa \\
+            {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs \\
+            --seed 1  &&\\
         
         /share/software/apps/bowtie2/2.3.4/bowtie2 -I 200 -X 400 \\
             -x {self.projdir}/2.Assembly/{sampleID}/{sampleID}.contigs \\
@@ -100,20 +99,20 @@ class Meta_Assembly:
         
         cmd = textwrap.dedent(f'''
         # ## unmap reads混合组装
-        # ~/.conda/envs/python2_lmt/bin/megahit \\
-        # -t 6 \\
-        # -1 {unmap1} \\
-        # -2 {unmap2} \\
-        # --out-dir {self.projdir}/2.Assembly/unmap_assembly/megahit \\
-        # --out-prefix unmap_reads \\
-        # --k-min 35 \\
-        # --k-max 95 \\
-        # --k-step 20 \\
-        # --min-contig-len 500 \\
-        # -f  &&\\
+        ~/.conda/envs/python2_lmt/bin/megahit \\
+        -t 6 \\
+        -1 {unmap1} \\
+        -2 {unmap2} \\
+        --out-dir {self.projdir}/2.Assembly/unmap_assembly/megahit \\
+        --out-prefix unmap_reads \\
+        --k-min 35 \\
+        --k-max 95 \\
+        --k-step 20 \\
+        --min-contig-len 500 \\
+        -f  &&\\
 
-        # ln -sf {self.projdir}/2.Assembly/unmap_assembly/megahit/unmap_reads.contigs.fa \\
-        #     {self.projdir}/2.Assembly/unmap_assembly/unmap_reads.contigs.fa
+        ln -sf {self.projdir}/2.Assembly/unmap_assembly/megahit/unmap_reads.contigs.fa \\
+            {self.projdir}/2.Assembly/unmap_assembly/unmap_reads.contigs.fa
         
         ## 组装结果评估
         python3 ~/pipeline/metagenomics/software/quast-4.6.3/quast.py \\
@@ -147,14 +146,11 @@ class Meta_Assembly:
 
 
     def start(self):
-        analysis_list = self.analysis_list.split(';')
-        if '2' in analysis_list:
-            for sampleID in self.fq_info:
-                self.assemby_sample(sampleID)
+        for sampleID in self.fq_info:
+            self.assemby_sample(sampleID)
 
-            self.assembly_unmap_reads() # 混合组装
-            self.merge_stat()   # 统计信息汇总
-
+        self.assembly_unmap_reads() # 混合组装
+        self.merge_stat()   # 统计信息汇总
 
 
 
@@ -163,7 +159,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='metagenomics pipeline')
     parser.add_argument('--projdir', help='project analysis absolute dirname')
     parser.add_argument('--sample_file', help='样本信息配置文件')
-    parser.add_argument('--analysis_list', help='具体分析步骤,后续待扩展', type=str, default='2')
+    parser.add_argument('--config', help='一些配置参数,命令行参数优先级高于配置文件')
     
     args = vars(parser.parse_args())
-    Meta_Assembly(args).start()
+    config_info = yaml.safe_load(open(args['config'])) if args['config'] else {}
+    for key, value in args.items():
+        if value:
+            config_info.update({key, value})
+
+    Meta_Assembly(config_info).start()
