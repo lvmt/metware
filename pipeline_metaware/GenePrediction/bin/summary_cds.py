@@ -58,7 +58,7 @@ def main(args):
     plt.xticks(rotation=270)
     plt.xlabel('ORF Length(nt)')
     plt.ylabel('Counts')
-    plt.title('Predict Gene Length Distribution')
+    plt.title(f'{name} Predict Gene Length Distribution')
     plt.savefig(f'{result_suffix}.fa.len.png', dpi=400, bbox_inches='tight')
     
 
