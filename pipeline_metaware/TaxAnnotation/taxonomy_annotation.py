@@ -18,8 +18,10 @@ import re
 import os
 import sys
 import textwrap
+from matplotlib.pyplot import text
 import pandas as pd  
 
+from .plot import TaxonPlot
 try:
     from Utils import utils
 except Exception as e:
@@ -34,9 +36,16 @@ class Taxonomy:
         self.args = args 
         self.sample_file = self.args['sample_file']
         self.projdir = self.args['projdir']
-        self.analysis_list = args['analysis_list']
-        self.threshold = args['threshold']
+        self.analysis_list = self.args['analysis_list']
+        self.nr_database = self.args['nr_database']
+        self.mega_database = self.args['mega_database']
+        self.nr_diamond_evelue = self.args['nr_diamond_evalue']
+        self.taxid_taxonomy_database = self.args['taxid_taxonomy_database']
         self.fq_info = utils.get_fq_info(self.sample_file)
+
+        ## 绘图参数 
+        self.metastat_compare = self.args['metastat_compare']
+        self.random_forest_compare = self.args['random_forest_compare']
 
 
     def diamond(self):
@@ -44,15 +53,17 @@ class Taxonomy:
         # 在非冗余的条件下,进行了reads支持数的筛选
         utils.mkdirs(f'{self.projdir}/4.TaxAnnotation')
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
         # diamond NR数据库比对; 输出格式为daa, 向后兼容megan
-        # 后续结果处理,严重怀疑诺禾没有使用megan进行LCA分析,而是通过accesion-taxid-taxonomy之间的关系进行转换的
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
-            -d ~/pipeline/metagenomics/database/microbe_nr/microbe_nr.dmnd \\
+            -d {self.nr_database} \\
             -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
             -o {self.projdir}/4.TaxAnnotation/NonRundant.protein.daa \\
-            --outfmt 100 \\
-            --evalue {self.threshold} 
+            --evalue {self.nr_diamond_evelue} \\
+            --outfmt 100 &&\\
+
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/4.TaxAnnotation/diamond.sh'
         utils.write_cmd(cmd, shellname)
@@ -60,13 +71,14 @@ class Taxonomy:
 
     def megan(self):
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
         # MEGAN 物种注释;megan已经整合了lca的功能
         ~/.conda/envs/python2_lmt/bin/daa2rma  \\
             -i {self.projdir}/4.TaxAnnotation/NonRundant.protein.daa \\
             -ms 50 \\
             -me 0.01 \\
             -top 50 \\
-            -mdb ~/pipeline/metagenomics/database/megan-map-Feb2022.db \\
+            -mdb {self.mega_database} \\
             -o {self.projdir}/4.TaxAnnotation/NonRundant.protein.rma &&\\
 
         ~/.conda/envs/python2_lmt/bin/rma2info \\
@@ -77,9 +89,10 @@ class Taxonomy:
         # 比对最终结果添加物种层级注释 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/addtaxonomy.py \\
             --lca {self.projdir}/4.TaxAnnotation/NonRundant.protein.info \\
-            --taxonomy_database ~/pipeline/metagenomics/database/microbe_nr/taxonomy/microbe.taxid_taxonomy \\
-            --result {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy 
+            --taxonomy_database  {self.taxid_taxonomy_database} \\
+            --result {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy &&\\
 
+        echo "end time: "  `date`
         ''')
         shellname = f'{self.projdir}/4.TaxAnnotation/megan.sh'
         utils.write_cmd(cmd, shellname) 
@@ -88,25 +101,27 @@ class Taxonomy:
     def combine_abundance_taxonomy(self):
         # 整合物种丰度和物种注释结果  
         cmd = textwrap.dedent(f'''
-        ## 整合绝对丰度表格, 并拆分成7个层级的结果
+        echo "start time: " `date`
+        ## 整合绝对/相对丰度表格, 并拆分成7个层级的结果
+        mkdir -p {self.projdir}/4.TaxAnnotation/Absolute
+        mkdir -p {self.projdir}/4.TaxAnnotation/Relative
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/merge_abundance_taxonomy.py \\
-            --abundance_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.combine.readsNum.absolute.xls \\
+            --abundance_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.abundance.absolute.xls \\
             --taxonomy_table {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy \\
-            --result_suffix  {self.projdir}/4.TaxAnnotation/NonRundant.tax_abundance.absolute &&\\
+            --sample_file {self.sample_file} \\
+            --result_suffix NonRundant.tax_abundance \\
+            --result_dir  {self.projdir}/4.TaxAnnotation &&\\
 
-
-        ## 整合相对丰度结果, 并拆分成7个层级的结果
-        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/merge_abundance_taxonomy.py \\
-            --abundance_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.combine.readsNum.relative.xls \\
-            --taxonomy_table {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy \\
-            --result_suffix  {self.projdir}/4.TaxAnnotation/NonRundant.tax_abundance.relative 
 
         ## 整合物种注释和基因数目的结果, 在单样本和全部样本的水平上,拆分为7个层级结果
+        mkdir -p {self.projdir}/4.TaxAnnotation/GeneStat
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/merge_gene_taxonomy.py \\
-            --gene_table  {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.combine.readsNum\\
-            --taxonomy_tabel {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy \\
-            --result_suffix {self.projdir}/4.TaxAnnotation/NonRundant.tax_gene
+            --gene_table  {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
+            --taxonomy_table {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy \\
+            --sample_file {self.sample_file} \\
+            --result_suffix {self.projdir}/4.TaxAnnotation/GeneStat/NonRundant.tax_gene &&\\
 
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/4.TaxAnnotation/merge_abundance_taxonomy.sh'
         utils.write_cmd(cmd, shellname)
@@ -114,16 +129,15 @@ class Taxonomy:
 
     def plot(self):
         # 绘图分析参数
-        pass 
-        
+        utils.mkdirs(f'{self.projdir}/4.TaxAnnotation/Plot')
+        TaxonPlot(self.args).start()
 
 
     def start(self):
-        analysis_list = self.analysis_list.split(';')
-        if '4' in analysis_list:
-            # self.diamond()
-            # self.megan()
-            self.combine_abundance_taxonomy()
+        self.diamond()
+        self.megan()
+        self.combine_abundance_taxonomy()
+        self.plot()
 
 
 
