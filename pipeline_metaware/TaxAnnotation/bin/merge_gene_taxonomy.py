@@ -49,10 +49,11 @@ def main(args):
         'genus': 6,
         'species': 7
     }
+
     for _class in class_info:
         merge_df['Taxonomy'] = merge_df['taxonomy'].apply(lambda x: '|'.join(x.split('|')[:class_info[_class]]))
         merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'unclassified' in x.split('|')[-1]), 'Taxonomy'] = 'Others'
-        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'Others' in x.split('|')[-1]), 'Taxonomy'] = 'Others'
+        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'Other' in x.split('|')[-1]), 'Taxonomy'] = 'Others'
         stat_df = merge_df.groupby('Taxonomy').sum().reset_index()
         stat_df[_class] = stat_df['Taxonomy'].apply(lambda x:'|'.join(x.split('|')[-2:])) 
         out = '{result_suffix}.{_class}.xls'.format(**args, **locals())
@@ -69,7 +70,7 @@ def main(args):
             _class_info[tax].add(gene)
 
         with open(out, 'w') as fw:
-            fw.write('family\tDetail_Taxonomy\tGene_Num\tGene_IDs\n')
+            fw.write(f'{_class}\tDetail_Taxonomy\tGene_Num\tGene_IDs\n')
             for _class in _class_info:
                 gene_nums = len(_class_info[_class])
                 gene_ids = ','.join(_class_info[_class])

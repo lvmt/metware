@@ -61,7 +61,7 @@ def main(args):
         # 复现诺禾结果中, 对于Others的判断为, 该层级的为unclass或者others的归为Others
         # 核心过程
         merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'unclassified' in x.split('|')[-1]), 'Taxonomy'] = 'Others'  
-        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'Others' in x.split('|')[-1]), 'Taxonomy'] = 'Others'   # 必须大小写敏感, 有些物种会包含other
+        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'Other' in x.split('|')[-1]), 'Taxonomy'] = 'Others'   # 必须大小写敏感, 有些物种会包含other
 
         stat_df = merge_df.groupby('Taxonomy').agg('sum')
         ## 绝对丰都
