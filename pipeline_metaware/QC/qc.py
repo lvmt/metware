@@ -114,7 +114,7 @@ class Quality_Control:
             {fq1} \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.1.info.xls 
 
-        # ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
+        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {fq2} \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.raw.2.info.xls 
         
@@ -123,7 +123,7 @@ class Quality_Control:
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.info.xls
 
-        # ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
+        ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/QC/bin/fastq_stat \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
             {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.info.xls
 
