@@ -140,7 +140,38 @@ class Run:
 
 
     def func(self, taxon_jobids):
-        pass 
+        print('>>> 任务投递： Function')
+        depend_ids = self.get_depend_ids(taxon_jobids)
+        ## kegg
+        kegg_blastp_sh = f'{self.projdir}/5.FunctionAnnotation/KEGG/blastp.sh'
+        kegg_blastp_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {kegg_blastp_sh} --mem 40gb --threads 10 -W {depend_ids}')
+        kegg_anno_sh = f'{self.projdir}/5.FunctionAnnotation/KEGG/anno.sh'
+        kegg_anno_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {kegg_anno_sh} --mem 10gb --threads 2 -W {kegg_blastp_jobid}')
+        kegg_stat_abundance_sh = f'{self.projdir}/5.FunctionAnnotation/KEGG/abundance_stat.sh'
+        kegg_stat_abundance_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {kegg_stat_abundance_sh} --mem 10gb --threads 2 -W {kegg_anno_jobid}')
+        kegg_stat_gene_sh = f'{self.projdir}/5.FunctionAnnotation/KEGG/gene_stat.sh'
+        kegg_stat_gene_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {kegg_stat_gene_sh} --mem 10gb --threads 2 -W {kegg_stat_abundance_jobid}')
+
+        ## cazy
+        cazy_blastp_sh = f'{self.projdir}/5.FunctionAnnotation/CAZy/blastp.sh'
+        cazy_blastp_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {cazy_blastp_sh} --mem 40gb --threads 10 -W {depend_ids}')
+        cazy_anno_sh = f'{self.projdir}/5.FunctionAnnotation/CAZy/anno.sh'
+        cazy_anno_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {cazy_anno_sh} --mem 10gb --threads 2 -W {cazy_blastp_jobid}')
+        cazy_stat_abundance_sh = f'{self.projdir}/5.FunctionAnnotation/CAZy/abundance_stat.sh'
+        cazy_stat_abundance_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {cazy_stat_abundance_sh} --mem 10gb --threads 2 -W {cazy_anno_jobid}')
+        cazy_stat_gene_sh = f'{self.projdir}/5.FunctionAnnotation/CAZy/gene_stat.sh'
+        cazy_stat_gene_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {cazy_stat_gene_sh} --mem 10gb --threads 2 -W {cazy_stat_abundance_jobid}')
+        
+        ## eggnog
+        eggnog_blastp_sh = f'{self.projdir}/5.FunctionAnnotation/eggNOG/blastp.sh'
+        eggnog_blastp_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {eggnog_blastp_sh} --mem 40gb --threads 10 -W {depend_ids}')
+        eggnog_anno_sh = f'{self.projdir}/5.FunctionAnnotation/eggNOG/anno.sh'
+        eggnog_anno_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {eggnog_anno_sh} --mem 10gb --threads 2 -W {eggnog_blastp_jobid}')
+        eggnog_stat_abundance_sh = f'{self.projdir}/5.FunctionAnnotation/eggNOG/abundance_stat.sh'
+        eggnog_stat_abundance_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {eggnog_stat_abundance_sh} --mem 10gb --threads 2 -W {eggnog_anno_jobid}')
+        eggnog_stat_gene_sh = f'{self.projdir}/5.FunctionAnnotation/eggNOG/gene_stat.sh'
+        eggnog_stat_gene_jobid = subprocess.getoutput(f'/lustrefs/share3/Bioinfo/lvmengting/tools/qsub.py {eggnog_stat_gene_sh} --mem 10gb --threads 2 -W {eggnog_stat_abundance_jobid}')
+        ## card 
 
 
     def start(self):
@@ -148,8 +179,8 @@ class Run:
         qc_jobids = 'none'
         assembly_jobids = 'none'
         predict_jobids = 'none'
-        taxo_jobids = 'none'
-        func_jboids = 'none'
+        taxon_jobids = 'none'
+        # func_jboids = 'none'
 
         analysis_list = [ana.split('.')[0] for ana in self.analysis_list.split(',')]
         if '1' in analysis_list:
@@ -164,4 +195,6 @@ class Run:
         if '4' in analysis_list:
             taxon_jobids = self.taxon(predict_jobids)
 
+        if '5' in analysis_list:
+            self.func(taxon_jobids)
 
