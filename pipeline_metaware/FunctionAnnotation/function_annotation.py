@@ -6,7 +6,6 @@
 '''
 
 
-
 '''
 功能注释
 '''
@@ -23,27 +22,45 @@ except Exception as e:
     from Utils import utils
 
 
+class Function:
+
+    def __init__(self, args):
+        self.args = args 
+
+
+    def start(self):
+        KEGG(self.args).start()
+        CAZy(self.args).start()
+        eggNOG(self.args).start()
+
+
 
 class KEGG:
     # KEGG 功能注释 
     def __init__(self, args):
         self.args = args
-        self.db = self.args['db_kegg']
         self.projdir = self.args['projdir']
-        self.threshold = self.args['threshold']
+        self.sample_file = self.args['sample_file']
+        self.kegg_diamond_evalue = self.args['kegg_diamond_evalue']
+        self.kegg_diamond_database = self.args['kegg_diamond_database']
+        self.kegg_ko_gene_relation = self.args['kegg_ko_gene_relation']
+        self.kegg_relation_database = self.args['kegg_relation_database']
 
 
     def blastp(self):
         utils.mkdirs(f'{self.projdir}/5.FunctionAnnotation/KEGG')
         cmd = textwrap.dedent(f'''
+        echo "start time: "  `date`
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
-            -d ~/pipeline/metagenomics/database/kegg/KEGG.protein.seq.microbe.dmnd \\
+            -d {self.kegg_diamond_database} \\
             -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
             -o {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8 \\
             --max-target-seqs 1 \\
-            --evalue {self.threshold} \\
-            --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore
+            --evalue {self.kegg_diamond_evalue} \\
+            --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore &&\\
+        
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/KEGG/blastp.sh'
         utils.write_cmd(cmd, shellname)
@@ -52,11 +69,14 @@ class KEGG:
     def anno(self):
         # kegg数据库注释 
         cmd = textwrap.dedent(f'''
+        echo "start time: "  `date`
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/kegg_anno.py \\
             --m8 {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8 \\
-            --ko_gene ~/pipeline/metagenomics/database/kegg/KO_gene \\
-            --ko_relation ~/pipeline/metagenomics/database/kegg/kegg_relation.json \\
-            --result {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno 
+            --ko_gene {self.kegg_ko_gene_relation} \\
+            --ko_relation {self.kegg_relation_database} \\
+            --result {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno &&\\
+
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/KEGG/anno.sh'
         utils.write_cmd(cmd, shellname)
@@ -65,14 +85,19 @@ class KEGG:
     def abundance_stat(self):
         # 给kegg注释结果增加物种和丰度信息 
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
         ## kegg 注释结果给予预测基因,添加物种注释信息和丰度信息, 并拆分至各个层级
+        mkdir -p {self.projdir}/5.FunctionAnnotation/KEGG/Relative
+        mkdir -p {self.projdir}/5.FunctionAnnotation/KEGG/Absolute
 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/kegg_stat_abundance.py \\
             --kegg_anno {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno \\
-            --abundance_table {self.projdir}/4.TaxAnnotation/NonRundant.tax_abundance.absolute.total.xls \\
-            --sample_file ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/sample_info.txt \\
-            --result_suffix {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno.kegg
+            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/NonRundant.tax_abundance.absolute.total.xls \\
+            --sample_file {self.sample_file} \\
+            --result_suffix NonRundant.protein.m8.anno.kegg \\
+            --result_dir {self.projdir}/5.FunctionAnnotation/KEGG &&\\
 
+        echo "end time: "  `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/KEGG/abundance_stat.sh'
         utils.write_cmd(cmd, shellname)
@@ -81,14 +106,18 @@ class KEGG:
     def gene_state(self):
         # 统计不同kegg levels的基因计数
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
         ## 不同水平的基因数目统计
         ## 汇总统计|单样本统计
+        mkdir -p {self.projdir}/5.FunctionAnnotation/KEGG/GeneStat
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/kegg_stat_gene.py \\
             --kegg_anno {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno \\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.combine.readsNum \\
-            --sample_file ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/sample_info.txt \\
-            --result_suffix {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno.kegg.gene_stat 
-        
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
+            --sample_file {self.sample_file} \\
+            --result_suffix NonRundant.protein.m8.anno.kegg.gene_stat  \\
+            --result_dir {self.projdir}/5.FunctionAnnotation/KEGG &&\\
+
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/KEGG/gene_stat.sh'
         utils.write_cmd(cmd, shellname)
@@ -106,20 +135,26 @@ class CAZy:
     def __init__(self, args):
         self.args = args
         self.projdir = self.args['projdir']
-        self.threshold = self.args['threshold']
+        self.sample_file = self.args['sample_file']
+        self.cazy_diamond_databse = self.args['cazy_diamond_databse']
+        self.cazy_diamond_evalue = self.args['cazy_diamond_evalue']
+        self.cazy_relation_database = self.args['cazy_relation_database']
 
 
     def blastp(self):
         utils.mkdirs(f'{self.projdir}/5.FunctionAnnotation/CAZy')
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
-            -d ~/pipeline/metagenomics/database/CAZy/CAZy.clean.dmnd \\
+            -d {self.cazy_diamond_databse} \\
             -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
             -o {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8 \\
             --max-target-seqs 1 \\
-            --evalue {self.threshold} \\
-            --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore
+            --evalue {self.cazy_diamond_evalue} \\
+            --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore &&\\
+        
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/CAZy/blastp.sh'
         utils.write_cmd(cmd, shellname)
@@ -128,10 +163,13 @@ class CAZy:
     def anno(self):
         # kegg数据库注释 
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/cazy_anno.py \\
             --m8 {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8 \\
-            --cazy_relation ~/pipeline/metagenomics/database/CAZy/cazy_relation.json \\
-            --result {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno 
+            --cazy_relation {self.cazy_relation_database} \\
+            --result {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno &&\\
+
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/CAZy/anno.sh'
         utils.write_cmd(cmd, shellname)
@@ -140,11 +178,18 @@ class CAZy:
     def abundance_stat(self):
         # 给cazy注释结果增加物种和丰度信息 
         cmd = textwrap.dedent(f'''
+        echo "start time: "  `date`
+        mkdir -p {self.projdir}/5.FunctionAnnotation/CAZy/Relative
+        mkdir -p {self.projdir}/5.FunctionAnnotation/CAZy/Absolute
+
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/cazy_stat_abundance.py \\
             --cazy_anno {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno  \\
-            --abundance_table {self.projdir}/4.TaxAnnotation/NonRundant.tax_abundance.absolute.total.xls\\
-            --sample_file  ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/sample_info.txt\\
-            --result_suffix {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno.cazy
+            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/NonRundant.tax_abundance.absolute.total.xls \\
+            --sample_file  {self.sample_file} \\
+            --result_suffix NonRundant.protein.m8.anno.cazy \\
+            --result_dir {self.projdir}/5.FunctionAnnotation/CAZy &&\\
+        
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/CAZy/abundance_stat.sh'
         utils.write_cmd(cmd, shellname)
@@ -153,12 +198,16 @@ class CAZy:
     def gene_stat(self):
         # 统计不同cazy水平的基因计数
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
+        mkdir -p {self.projdir}/5.FunctionAnnotation/CAZy/GeneStat
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/cazy_stat_gene.py \\
             --cazy_anno {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno \\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.combine.readsNum \\
-            --sample_file ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/sample_info.txt \\
-            --result_suffix {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno.cazy.gene_stat
-        
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum  \\
+            --sample_file {self.sample_file} \\
+            --result_suffix NonRundant.protein.m8.anno.cazy.gene_stat  \\
+            --result_dir {self.projdir}/5.FunctionAnnotation/CAZy &&\\
+
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/CAZy/gene_stat.sh'
         utils.write_cmd(cmd, shellname)
@@ -176,21 +225,27 @@ class eggNOG:
     
     def __init__(self, args):
         self.args = args
-        self.projdir = args['projdir']
-        self.threshold = self.args['threshold']
-          
+        self.projdir = self.args['projdir']
+        self.sample_file = self.args['sample_file']
+        self.eggnog_diamond_evalue = self.args['eggnog_diamond_evalue']
+        self.eggnog_diamond_databse = self.args['eggnog_diamond_databse']
+        self.eggnog_relation_database = self.args['eggnog_relation_database']
+
 
     def blastp(self):
         utils.mkdirs(f'{self.projdir}/5.FunctionAnnotation/eggNOG')
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
-            -d ~/pipeline/metagenomics/database/eggNOG/eggnog-mapper/data/e5.proteomes.dmnd  \\
+            -d  {self.eggnog_diamond_databse} \\
             -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
             -o {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8 \\
             --max-target-seqs 1 \\
-            --evalue {self.threshold} \\
-            --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore
+            --evalue {self.eggnog_diamond_evalue} \\
+            --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore &&\\
+        
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/eggNOG/blastp.sh'
         utils.write_cmd(cmd, shellname)
@@ -198,10 +253,13 @@ class eggNOG:
 
     def anno(self):
         cmd = textwrap.dedent(f'''
+        echo  "start time: " `date`
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/eggNOG_anno.py \\
             --m8 {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8 \\
-            --eggNOG_relation ~/pipeline/metagenomics/database/eggNOG/eggnog-mapper/data/eggNOG_config/eggNOG.json \\
-            --result {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno 
+            --eggNOG_relation {self.eggnog_relation_database} \\
+            --result {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno &&\\
+        
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/eggNOG/anno.sh'
         utils.write_cmd(cmd, shellname)
@@ -209,11 +267,18 @@ class eggNOG:
 
     def abundance_stat(self):
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
+        mkdir -p {self.projdir}/5.FunctionAnnotation/eggNOG/Relative
+        mkdir -p {self.projdir}/5.FunctionAnnotation/eggNOG/Absolute
+
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/eggNOG_stat_abundance.py \\
             --eggNOG_anno {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno \\
-            --abundance_table {self.projdir}/4.TaxAnnotation/NonRundant.tax_abundance.absolute.total.xls \\
-            --sample_file ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/sample_info.txt \\
-            --result_suffix {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno.eggNOG
+            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/NonRundant.tax_abundance.absolute.total.xls \\
+            --sample_file {self.sample_file} \\
+            --result_suffix NonRundant.protein.m8.anno.eggNOG \\
+            --result_dir {self.projdir}/5.FunctionAnnotation/eggNOG/ &&\\
+
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/eggNOG/abundance_stat.sh'
         utils.write_cmd(cmd, shellname)
@@ -221,11 +286,17 @@ class eggNOG:
 
     def gene_stat(self):
         cmd = textwrap.dedent(f'''
+        echo "start time: " `date`
+        mkdir -p {self.projdir}/5.FunctionAnnotation/eggNOG/GeneStat 
+        
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/eggNOG_stat_gene.py  \\
             --eggNOG_anno {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno \\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.combine.readsNum \\
-            --sample_file ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/sample_info.txt \\
-            --result_suffix {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno.eggNOG.gene_stat\\
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
+            --sample_file {self.sample_file} \\
+            --result_suffix NonRundant.protein.m8.anno.eggNOG.gene_stat \\
+            --result_dir {self.projdir}/5.FunctionAnnotation/eggNOG &&\\
+            
+        echo "end time: " `date`
         ''')
         shellname = f'{self.projdir}/5.FunctionAnnotation/eggNOG/gene_stat.sh'
         utils.write_cmd(cmd, shellname)

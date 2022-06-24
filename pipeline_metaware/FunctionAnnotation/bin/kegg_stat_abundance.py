@@ -68,12 +68,12 @@ def main(args):
     # 列归一化 * 放大系数
     stat_ko_re = (stat_ko / stat_ko.sum(axis=0))
     stat_ko_ab = (stat_ko / stat_ko.sum(axis=0)) * max(stat_ko.sum(axis=0))
-    stat_ko_re.reset_index().to_csv('{result_suffix}.relative.ko.xls'.format(**args), sep='\t', index=None)
-    stat_ko_ab.reset_index().to_csv('{result_suffix}.absolute.ko.xls'.format(**args), sep='\t', index=None)
+    stat_ko_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.ko.xls'.format(**args), sep='\t', index=None)
+    stat_ko_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.ko.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_ko_re_group = get_target_group_df(stat_ko_re, group_info)
     stat_ko_re_group = stat_ko_re_group / stat_ko_re_group.sum(axis=0)
-    stat_ko_re_group.reset_index().to_csv('{result_suffix}.relative.group.ko.xls'.format(**args), sep='\t', index=None)
+    stat_ko_re_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.ko.xls'.format(**args), sep='\t', index=None)
 
 
     ################# 处理ec
@@ -86,12 +86,12 @@ def main(args):
     # 列归一化 * 放大系数
     stat_ec_re = (stat_ec / stat_ec.sum(axis=0))
     stat_ec_ab = (stat_ec / stat_ec.sum(axis=0)) * max(stat_ec.sum(axis=0))
-    stat_ec_re.reset_index().to_csv('{result_suffix}.relative.ec.xls'.format(**args), sep='\t', index=None)
-    stat_ec_ab.reset_index().to_csv('{result_suffix}.absolute.ec.xls'.format(**args), sep='\t', index=None)
+    stat_ec_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.ec.xls'.format(**args), sep='\t', index=None)
+    stat_ec_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.ec.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_ec_re_group = get_target_group_df(stat_ec_re, group_info)
     stat_ec_re_group = stat_ec_re_group / stat_ec_re_group.sum(axis=0)
-    stat_ec_re_group.reset_index().to_csv('{result_suffix}.relative.group.ec.xls'.format(**args), sep='\t', index=None)
+    stat_ec_re_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.ec.xls'.format(**args), sep='\t', index=None)
 
 
     ################### 处理mo
@@ -104,12 +104,12 @@ def main(args):
     #列归一化 * 放大系数
     stat_mo_re = (stat_mo / stat_mo.sum(axis=0))  
     stat_mo_ab = (stat_mo / stat_mo.sum(axis=0)) * max(stat_mo.sum(axis=0))
-    stat_mo_re.reset_index().to_csv('{result_suffix}.relative.module.xls'.format(**args), sep='\t', index=None)
-    stat_mo_ab.reset_index().to_csv('{result_suffix}.absolute.module.xls'.format(**args), sep='\t', index=None)
+    stat_mo_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.module.xls'.format(**args), sep='\t', index=None)
+    stat_mo_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.module.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_mo_re_group = get_target_group_df(stat_mo_re, group_info)
     stat_mo_re_group = stat_mo_re_group / stat_mo_re_group.sum(axis=0)
-    stat_mo_re_group.reset_index().to_csv('{result_suffix}.relative.group.module.xls'.format(**args), sep='\t', index=None)
+    stat_mo_re_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.module.xls'.format(**args), sep='\t', index=None)
 
 
     #################### 处理pathway
@@ -129,12 +129,12 @@ def main(args):
     #列归一化 * 放大系数
     stat_level1_re = (stat_level1 / stat_level1.sum(axis=0)) 
     stat_level1_ab = (stat_level1 / stat_level1.sum(axis=0)) * max(stat_level1.sum(axis=0))
-    stat_level1_re.reset_index().to_csv('{result_suffix}.relative.level1.xls'.format(**args), sep='\t', index=None)
-    stat_level1_ab.reset_index().to_csv('{result_suffix}.absolute.level1.xls'.format(**args), sep='\t', index=None)
+    stat_level1_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.level1.xls'.format(**args), sep='\t', index=None)
+    stat_level1_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level1.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_level1_re_group = get_target_group_df(stat_level1_re, group_info)
     stat_level1_re_group = stat_level1_re_group / stat_level1_re_group.sum(axis=0)
-    stat_level1_re_group.reset_index().to_csv('{result_suffix}.relative.group.level1.xls'.format(**args), sep='\t', index=None)
+    stat_level1_re_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level1.xls'.format(**args), sep='\t', index=None)
 
 
     ## 层级2
@@ -146,12 +146,12 @@ def main(args):
     #列归一化 * 放大系数
     stat_level2_re = (stat_level2 / stat_level2.sum(axis=0)) 
     stat_level2_ab = (stat_level2 / stat_level2.sum(axis=0)) * max(stat_level2.sum(axis=0))
-    stat_level2_re.reset_index().to_csv('{result_suffix}.relative.level2.xls'.format(**args), sep='\t', index=None)
-    stat_level2_ab.reset_index().to_csv('{result_suffix}.absolute.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level2.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_level2_re_group = get_target_group_df(stat_level2_re, group_info)
     stat_level2_re_group = stat_level2_re_group / stat_level2_re_group.sum(axis=0)
-    stat_level2_re_group.reset_index().to_csv('{result_suffix}.relative.group.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2_re_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level2.xls'.format(**args), sep='\t', index=None)
 
 
     ## 层级3
@@ -163,12 +163,12 @@ def main(args):
     #列归一化 * 放大系数
     stat_level3_re = (stat_level3 / stat_level3.sum(axis=0)) 
     stat_level3_ab = (stat_level3 / stat_level3.sum(axis=0)) * max(stat_level3.sum(axis=0))
-    stat_level3_re.reset_index().to_csv('{result_suffix}.relative.level3.xls'.format(**args), sep='\t', index=None)
-    stat_level3_ab.reset_index().to_csv('{result_suffix}.absolute.level3.xls'.format(**args), sep='\t', index=None)
+    stat_level3_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.level3.xls'.format(**args), sep='\t', index=None)
+    stat_level3_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level3.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_level3_re_group = get_target_group_df(stat_level3_re, group_info)
     stat_level3_re_group = stat_level3_re_group.sum(axis=0)
-    stat_level3_re_group.reset_index().to_csv('{result_suffix}.relative.group.level3.xls'.format(**args), sep='\t', index=None)
+    stat_level3_re_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level3.xls'.format(**args), sep='\t', index=None)
 
 
 
@@ -179,6 +179,7 @@ if __name__ == '__main__':
     parser.add_argument('--abundance_table', help='物种丰度注释结果(Unigenes.absolute.total.tax.xls)')
     parser.add_argument('--sample_file', help='样本配置文件')
     parser.add_argument('--result_suffix', help='输出文件前缀')
+    parser.add_argument('--result_dir', help='输出结果目录')
 
     args = vars(parser.parse_args())
 

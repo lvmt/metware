@@ -74,12 +74,12 @@ def main(args):
     
     stat_cazy_level1_re = stat_cazy_level1 / stat_cazy_level1.sum(axis=0)
     stat_cazy_level1_ab = (stat_cazy_level1 / stat_cazy_level1.sum(axis=0)) * max(stat_cazy_level1.sum(axis=0))
-    stat_cazy_level1_re.reset_index().to_csv('{result_suffix}.relative.level1.xls'.format(**args), sep='\t', index=None)
-    stat_cazy_level1_ab.reset_index().to_csv('{result_suffix}.absolute.level1.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level1_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.level1.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level1_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level1.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_cazy_level1_group = get_target_group_df(stat_cazy_level1_re, group_info)
     stat_cazy_level1_group = stat_cazy_level1_group / stat_cazy_level1_group.sum(axis=0)
-    stat_cazy_level1_group.reset_index().to_csv('{result_suffix}.relative.group.level1.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level1_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level1.xls'.format(**args), sep='\t', index=None)
 
     ## level2 水平
     cazy_level2_df = cazy_split.loc[:, ['query', 'CAZy_Family'] + samples]
@@ -89,12 +89,12 @@ def main(args):
     
     stat_cazy_level2_re = stat_cazy_level2 / stat_cazy_level2.sum(axis=0)
     stat_cazy_level2_ab = (stat_cazy_level2 / stat_cazy_level2.sum(axis=0)) * max(stat_cazy_level2.sum(axis=0))
-    stat_cazy_level2_re.reset_index().to_csv('{result_suffix}.relative.level2.xls'.format(**args), sep='\t', index=None)
-    stat_cazy_level2_ab.reset_index().to_csv('{result_suffix}.absolute.level2.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level2_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.level2.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level2_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level2.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_cazy_level2_group = get_target_group_df(stat_cazy_level2_re, group_info)
     stat_cazy_level2_group = stat_cazy_level2_group / stat_cazy_level2_group.sum(axis=0)
-    stat_cazy_level2_group.reset_index().to_csv('{result_suffix}.relative.group.level2.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level2_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level2.xls'.format(**args), sep='\t', index=None)
 
 
     # ################### 处理酶相关
@@ -106,12 +106,12 @@ def main(args):
     
     ec_stat_re = ec_stat / ec_stat.sum(axis=0)
     ec_stat_ab = (ec_stat / ec_stat.sum(axis=0)) * max(ec_stat.sum(axis=0))
-    ec_stat_re.reset_index().to_csv('{result_suffix}.relative.ec.xls'.format(**args), sep='\t', index=None)
-    ec_stat_ab.reset_index().to_csv('{result_suffix}.absolute.ec.xls'.format(**args), sep='\t', index=None)
+    ec_stat_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.ec.xls'.format(**args), sep='\t', index=None)
+    ec_stat_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.ec.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     ec_stat_group = get_target_group_df(ec_stat_re, group_info)
     ec_stat_group = ec_stat_group / ec_stat_group.sum(axis=0)
-    ec_stat_group.reset_index().to_csv('{result_suffix}.relative.group.ec.xls'.format(**args), sep='\t', index=None)
+    ec_stat_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.ec.xls'.format(**args), sep='\t', index=None)
 
 
 
@@ -122,6 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('--abundance_table', help='物种丰度注释结果(Unigenes.absolute.total.tax.xls)')
     parser.add_argument('--sample_file', help='样本配置文件')
     parser.add_argument('--result_suffix', help='输出文件前缀')
+    parser.add_argument('--result_dir', help='输出结果目录')
 
     args = vars(parser.parse_args())
 

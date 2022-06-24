@@ -95,12 +95,12 @@ def main(args):
 
     stat_class_re = stat_class / stat_class.sum(axis=0)
     stat_class_ab = (stat_class / stat_class.sum(axis=0)) * max(stat_class.sum(axis=0))
-    stat_class_re.reset_index().to_csv('{result_suffix}.relative.level1.xls'.format(**args), sep='\t', index=None)
-    stat_class_ab.reset_index().to_csv('{result_suffix}.absolute.level1.xls'.format(**args), sep='\t', index=None)
+    stat_class_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.level1.xls'.format(**args), sep='\t', index=None)
+    stat_class_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level1.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_class_group = get_target_group_df(stat_class_re, group_info)
     stat_class_group = stat_class_group / stat_class_group.sum(axis=0)
-    stat_class_group.reset_index().to_csv('{result_suffix}.relative.group.level1.xls'.format(**args), sep='\t', index=None)
+    stat_class_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level1.xls'.format(**args), sep='\t', index=None)
 
 
     #### 处理desc，（level2）
@@ -110,12 +110,12 @@ def main(args):
 
     stat_level2_re = stat_level2 / stat_level2.sum(axis=0)
     stat_level2_ab = (stat_level2 / stat_level2.sum(axis=0)) * max(stat_level2.sum(axis=0))
-    stat_level2_re.reset_index().to_csv('{result_suffix}.relative.level2.xls'.format(**args), sep='\t', index=None)
-    stat_level2_ab.reset_index().to_csv('{result_suffix}.absolute.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level2.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_level2_group = get_target_group_df(stat_level2_re, group_info)
     stat_level2_group = stat_level2_group / stat_level2_group.sum(axis=0)
-    stat_level2_group.reset_index().to_csv('{result_suffix}.relative.group.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level2.xls'.format(**args), sep='\t', index=None)
 
 
     #### 处理OG
@@ -125,12 +125,12 @@ def main(args):
 
     stat_og_re = stat_og / stat_og.sum(axis=0)
     stat_og_ab = (stat_og / stat_og.sum(axis=0)) * max(stat_og.sum(axis=0))
-    stat_og_re.reset_index().to_csv('{result_suffix}.relative.og.xls'.format(**args), sep='\t', index=None)
-    stat_og_ab.reset_index().to_csv('{result_suffix}.absolute.og.xls'.format(**args), sep='\t', index=None)
+    stat_og_re.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.og.xls'.format(**args), sep='\t', index=None)
+    stat_og_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.og.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_og_group = get_target_group_df(stat_og_re, group_info)
     stat_og_group = stat_og_group / stat_og_group.sum(axis=0)
-    stat_og_group.reset_index().to_csv('{result_suffix}.relative.group.og.xls'.format(**args), sep='\t', index=None)
+    stat_og_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.og.xls'.format(**args), sep='\t', index=None)
 
 
 
@@ -141,6 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('--abundance_table', help='物种丰度注释结果(Unigenes.absolute.total.tax.xls)')
     parser.add_argument('--sample_file', help='样本配置文件')
     parser.add_argument('--result_suffix', help='输出文件前缀')
+    parser.add_argument('--result_dir', help='输出结果目录')
 
     args = vars(parser.parse_args())
 

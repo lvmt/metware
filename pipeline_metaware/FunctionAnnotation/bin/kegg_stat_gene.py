@@ -106,8 +106,9 @@ def main(args):  # sourcery skip: low-code-quality
 
 
     for _class in stat_info:
-        out = '{result_suffix}.combine.{_class}.xls'.format(**args, **locals())
+        out = '{result_dir}/GeneStat/{result_suffix}.total.{_class}.xls'.format(**args, **locals())
         with open(out, 'w') as fw:
+            fw.write(f'{_class}\tGene_Num\tGene_IDs\n')
             for item in stat_info[_class]:  # item: K0001
                 ## 需要去重,
                 ## 1. 一个KO多个map时,不同map在level1和level2上可能一样
@@ -129,7 +130,7 @@ def main(args):  # sourcery skip: low-code-quality
     stat_ko = ko_df.groupby('KO').sum()
     stat_ko.loc['Others', :] = stat_ko.loc['Others', :] + stat_ko.loc['-', :]
     stat_ko.drop(index=['-'], inplace=True)
-    stat_ko.reset_index().to_csv('{result_suffix}.ko.xls'.format(**args), sep='\t', index=None)
+    stat_ko.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.ko.xls'.format(**args), sep='\t', index=None)
 
     ## 处理ec
     ec_df = merge_df.loc[:, ['Query', 'KO_EC'] + samples]
@@ -138,7 +139,7 @@ def main(args):  # sourcery skip: low-code-quality
     stat_ec = ec_split.groupby('KO_EC').sum()
     stat_ec.loc['Others', :] = stat_ec.loc['Others', :] + stat_ec.loc['-', :]
     stat_ec.drop(index=['-'], inplace=True)
-    stat_ec.reset_index().to_csv('{result_suffix}.ec.xls'.format(**args), sep='\t', index=None)
+    stat_ec.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.ec.xls'.format(**args), sep='\t', index=None)
 
     ## 处理mo
     mo_df = merge_df.loc[:, ['Query', 'Module'] + samples]
@@ -147,7 +148,7 @@ def main(args):  # sourcery skip: low-code-quality
     stat_mo = mo_split.groupby('Module').sum()
     stat_mo.loc['Others', :] = stat_mo.loc['Others', :] + stat_mo.loc['-', :]
     stat_mo.drop(index=['-'], inplace=True)
-    stat_mo.reset_index().to_csv('{result_suffix}.module.xls'.format(**args), sep='\t', index=None)
+    stat_mo.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.module.xls'.format(**args), sep='\t', index=None)
     
     ## 处理pathway
     pathway_df = merge_df.loc[:, ['Query', 'KO_Pathway'] + samples]
@@ -163,7 +164,7 @@ def main(args):  # sourcery skip: low-code-quality
     stat_level1 = level1_df.groupby('KO_Pathway_Level1').sum()
     stat_level1.loc['Others', :] = stat_level1.loc['-', :]
     stat_level1.drop(index=['-'], inplace=True)
-    stat_level1.reset_index().to_csv('{result_suffix}.level1.xls'.format(**args), sep='\t', index=None)
+    stat_level1.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.level1.xls'.format(**args), sep='\t', index=None)
 
     # 层级2
     level2_df = pathway_list.loc[:, ['Query', 'KO_Pathway_Level2'] + samples]
@@ -171,7 +172,7 @@ def main(args):  # sourcery skip: low-code-quality
     stat_level2 = level2_df.groupby('KO_Pathway_Level2').sum()
     stat_level2.loc['Others;Others', :] = stat_level2.loc['-;-', :]
     stat_level2.drop(index=['-;-'], inplace=True)
-    stat_level2.reset_index().to_csv('{result_suffix}.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.level2.xls'.format(**args), sep='\t', index=None)
 
 
     # 层级3
@@ -180,7 +181,7 @@ def main(args):  # sourcery skip: low-code-quality
     stat_level3 = level3_df.groupby('KO_Pathway_Level3').sum()
     stat_level3.loc['Others', :] = stat_level3.loc['-', :] + stat_level3.loc['Others', :]
     stat_level3.drop(index=['-'], inplace=True)
-    stat_level3.reset_index().to_csv('{result_suffix}.level3.xls'.format(**args), sep='\t', index=None)
+    stat_level3.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.level3.xls'.format(**args), sep='\t', index=None)
 
 
 
@@ -191,6 +192,7 @@ if __name__ == '__main__':
     parser.add_argument('--gene_table', help='样本基因计数结果')
     parser.add_argument('--sample_file', help='sample file, 提取样本名称')
     parser.add_argument('--result_suffix', help='输出文件前缀')
+    parser.add_argument('--result_dir', help='输出结果目录')
 
     args = vars(parser.parse_args())
 

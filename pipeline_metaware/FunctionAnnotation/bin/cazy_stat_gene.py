@@ -54,7 +54,7 @@ def main(args):
     cazy_level1_df = cazy_split.loc[:, ['query', 'CAZy_Modules'] + samples]
     cazy_level1_df.drop_duplicates(subset=['query', 'CAZy_Modules'], inplace=True)
     stat_cazy_level1 = cazy_level1_df.groupby('CAZy_Modules').sum()
-    stat_cazy_level1.reset_index().to_csv('{result_suffix}.level1.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level1.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.level1.xls'.format(**args), sep='\t', index=None)
 
     # 汇总统计
     level1_info = defaultdict(set)
@@ -62,7 +62,7 @@ def main(args):
         gene, _class = row 
         level1_info[_class].add(gene)
 
-    with open('{result_suffix}.combine.level1.xls'.format(**args), 'w') as fw:
+    with open('{result_dir}/GeneStat/{result_suffix}.total.level1.xls'.format(**args), 'w') as fw:
         fw.write('CAZy_Modules\tGene_Num\tGene_IDs\n')
         for _class in level1_info:
             gene_nums = len(level1_info[_class])
@@ -75,7 +75,7 @@ def main(args):
     cazy_level2_df['CAZy_Family'] = cazy_level2_df['CAZy_Family'].apply(lambda x: re.search(r'[a-zA-Z0-9]+', x).group())  # 将亚家族转换为家族
     cazy_level2_df.drop_duplicates(subset=['query', 'CAZy_Family'], inplace=True)
     stat_cazy_level2 = cazy_level2_df.groupby('CAZy_Family').sum()
-    stat_cazy_level2.reset_index().to_csv('{result_suffix}.level2.xls'.format(**args), sep='\t', index=None)
+    stat_cazy_level2.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.level2.xls'.format(**args), sep='\t', index=None)
 
     # 汇总统计
     level2_info = defaultdict(set)
@@ -83,7 +83,7 @@ def main(args):
         gene, _class = row 
         level2_info[_class].add(gene)
 
-    with open('{result_suffix}.combine.level2.xls'.format(**args), 'w') as fw:
+    with open('{result_dir}/GeneStat/{result_suffix}.total.level2.xls'.format(**args), 'w') as fw:
         fw.write('CAZy_Family\tGene_Num\tGene_IDs\n')
         for _class in level2_info:
             gene_nums = len(level2_info[_class])
@@ -96,7 +96,7 @@ def main(args):
     ec_split = ec_df.drop('ec', axis=1).join(ec_df['ec'].str.split('|', expand=True).stack().reset_index(level=1, drop=True).rename('ec'))
     ec_split.drop_duplicates(subset=['query', 'ec'], inplace=True)
     stat_ec = ec_split.groupby('ec').sum()
-    stat_ec.reset_index().to_csv('{result_suffix}.ec.xls'.format(**args), sep='\t', index=None)
+    stat_ec.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.ec.xls'.format(**args), sep='\t', index=None)
 
     # 汇总统计
     ec_info = defaultdict(set)
@@ -104,7 +104,7 @@ def main(args):
         gene, _class = row 
         ec_info[_class].add(gene)
 
-    with open('{result_suffix}.combine.ec.xls'.format(**args), 'w') as fw:
+    with open('{result_dir}/GeneStat/{result_suffix}.total.ec.xls'.format(**args), 'w') as fw:
         fw.write('EC\tGene_Num\tGene_IDs\n')
         for _class in ec_info:
             gene_nums = len(ec_info[_class])
@@ -120,6 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('--gene_table', help='样本基因计数结果')
     parser.add_argument('--sample_file', help='sample file, 提取样本名称')
     parser.add_argument('--result_suffix', help='输出文件前缀')
+    parser.add_argument('--result_dir', help='输出结果目录')
 
     args = vars(parser.parse_args())
 

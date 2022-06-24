@@ -81,7 +81,7 @@ def main(args):
     level1_split['Functional_Category'] = level1_split['Functional_Category'].map(class_info)
 
     stat_level1 = level1_split.groupby('Functional_Category').sum()
-    stat_level1.reset_index().to_csv('{result_suffix}.level1.xls'.format(**args), sep='\t', index=None)
+    stat_level1.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.level1.xls'.format(**args), sep='\t', index=None)
 
     ## 汇总统计
     level1_info = defaultdict(set)
@@ -89,7 +89,7 @@ def main(args):
         gene, _class = row
         level1_info[_class].add(gene)
 
-    with open('{result_suffix}.combine.level1.xls'.format(**args), 'w') as fw:
+    with open('{result_dir}/GeneStat/{result_suffix}.total.level1.xls'.format(**args), 'w') as fw:
         fw.write('Functional_Category\tGene_Num\tGene_IDs\n')
         for _class in level1_info:
             gene_nums = len(level1_info[_class])
@@ -102,7 +102,7 @@ def main(args):
     level2_df.drop_duplicates(subset=['query', 'OG_Description'], inplace=True)
     
     stat_level2 = level2_df.groupby('OG_Description').sum()
-    stat_level2.reset_index().to_csv('{result_suffix}.level2.xls'.format(**args), sep='\t', index=None)
+    stat_level2.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.level2.xls'.format(**args), sep='\t', index=None)
 
     ## 汇总统计 
     level2_info = defaultdict(set)
@@ -110,8 +110,8 @@ def main(args):
         gene, _class = row
         level2_info[_class].add(gene)
 
-    with open('{result_suffix}.combine.level2.xls'.format(**args), 'w') as fw:
-        fw.write('OG_Description\tGene_Num\ttGene_IDs\n')
+    with open('{result_dir}/GeneStat/{result_suffix}.total.level2.xls'.format(**args), 'w') as fw:
+        fw.write('OG_Description\tGene_Num\tGene_IDs\n')
         for _class in level2_info:
             gene_nums = len(level2_info[_class])
             gene_ids = ','.join(level2_info[_class])
@@ -123,7 +123,7 @@ def main(args):
     og_df.drop_duplicates(subset=['query', 'Ortholog_Group'], inplace=True)
 
     stat_og = og_df.groupby('Ortholog_Group').sum()
-    stat_og.reset_index().to_csv('{result_suffix}.og.xls'.format(**args), sep='\t', index=None)
+    stat_og.reset_index().to_csv('{result_dir}/GeneStat/{result_suffix}.og.xls'.format(**args), sep='\t', index=None)
 
     ## 汇总统计
     og_info = defaultdict(set)
@@ -131,8 +131,8 @@ def main(args):
         gene, _class = row
         og_info[_class].add(gene)
 
-    with open('{result_suffix}.combine.og.xls'.format(**args), 'w') as fw:
-        fw.write('Ortholog_Group\tGene_Num\ttGene_IDs\n')
+    with open('{result_dir}/GeneStat/{result_suffix}.total.og.xls'.format(**args), 'w') as fw:
+        fw.write('Ortholog_Group\tGene_Num\tGene_IDs\n')
         for _class in og_info:
             gene_nums = len(og_info[_class])
             gene_ids = ','.join(og_info[_class])
@@ -147,6 +147,7 @@ if __name__ == '__main__':
     parser.add_argument('--gene_table', help='样本基因计数结果')
     parser.add_argument('--sample_file', help='sample file, 提取样本名称')
     parser.add_argument('--result_suffix', help='输出文件前缀')
+    parser.add_argument('--result_dir', help='输出结果目录')
 
     args = vars(parser.parse_args())
 

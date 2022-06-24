@@ -22,7 +22,19 @@ def get_df(infile):
 
 
 def main(args):
-    m8_df = get_df(args['m8'])
+    m8_df = pd.read_csv(args['m8'], sep='\t', header=None).rename(columns = {
+                                                                    0: 'Query', 
+                                                                    1: 'Gene', 
+                                                                    2: 'pident',
+                                                                    3: 'length',
+                                                                    4: 'mismatch',
+                                                                    5: 'gapopen',
+                                                                    6: 'qstart',
+                                                                    7: 'qend',
+                                                                    8: 'sstart',
+                                                                    9: 'send',
+                                                                    10: 'evalue',
+                                                                    11: 'bitscore'}) 
     m8_df = m8_df.loc[:, ['Query', 'Gene']]  # 只需要指定行即可
     ko_gene_df = get_df(args['ko_gene'])
     m8_gene_com = pd.merge(m8_df, ko_gene_df, on='Gene', how='left').fillna('-')  # 合并m8和gene
