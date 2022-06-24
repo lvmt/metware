@@ -1,0 +1,40 @@
+## 共同参数 
+projdir: ~/pipeline/metagenomics/new_test
+sample_file: ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/sample_info.txt
+analysis_list: '1.1'
+
+# 质控参数
+host: pig 
+# 物种注释参数 
+nr_database: '~/pipeline/metagenomics/database/microbe_nr/microbe_nr.dmnd'
+nr_diamond_evelue: 0.00005
+mega_database: '~/pipeline/metagenomics/database/megan-map-Feb2022.db'
+taxid_taxonomy_database: '~/pipeline/metagenomics/database/microbe_nr/taxonomy/microbe.taxid_taxonomy'
+metastat_compare:
+  - HH_vs_HK
+  - HH_vs_HC
+  - HC_vs_HK
+random_forest_compare:
+  - HH_vs_HK
+  - HH_vs_HC
+  - HC_vs_HK
+## 功能注释参数 
+kegg_diamond_database: '~/pipeline/metagenomics/database/kegg/KEGG.protein.seq.microbe.dmnd'
+kegg_diamond_evalue: 0.00001
+kegg_ko_gene_relation: '~/pipeline/metagenomics/database/kegg/KO_gene'
+kegg_relation_database: '~/pipeline/metagenomics/database/kegg/kegg_relation.json'
+cazy_diamond_databse: '~/pipeline/metagenomics/database/CAZy/CAZy.clean.dmnd'
+cazy_diamond_evalue: 0.00001
+cazy_relation_database: '~/pipeline/metagenomics/database/CAZy/cazy_relation.json'
+eggnog_diamond_evalue: 0.00001
+eggnog_diamond_databse: '~/pipeline/metagenomics/database/eggNOG/eggnog-mapper/data/e5.proteomes.dmnd' 
+eggnog_relation_database: '~/pipeline/metagenomics/database/eggNOG/eggnog-mapper/data/eggNOG_config/eggNOG.json'
+
+
+### 固定值
+HOST:
+  human: /lustrefs/share3/Bioinfo/lvmengting/pipeline/metagenomics/database/fasta/human/human 
+  pig: not_yet
+
+# 报告模板
+template_dir: ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/Report/templates
