@@ -39,7 +39,7 @@ class Taxonomy:
         self.analysis_list = self.args['analysis_list']
         self.nr_database = self.args['nr_database']
         self.mega_database = self.args['mega_database']
-        self.nr_diamond_evelue = self.args['nr_diamond_evalue']
+        self.nr_diamond_evalue = self.args['nr_diamond_evalue']
         self.taxid_taxonomy_database = self.args['taxid_taxonomy_database']
         self.fq_info = utils.get_fq_info(self.sample_file)
 
@@ -57,10 +57,12 @@ class Taxonomy:
         # diamond NR数据库比对; 输出格式为daa, 向后兼容megan
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
+            --threads 40 \\
+            --max-target-seqs 5 \\
             -d {self.nr_database} \\
             -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
             -o {self.projdir}/4.TaxAnnotation/NonRundant.protein.daa \\
-            --evalue {self.nr_diamond_evelue} \\
+            --evalue {self.nr_diamond_evalue} \\
             --outfmt 100 &&\\
 
         echo "end time: " `date`
@@ -77,7 +79,7 @@ class Taxonomy:
             -i {self.projdir}/4.TaxAnnotation/NonRundant.protein.daa \\
             -ms 50 \\
             -me 0.01 \\
-            -top 50 \\
+            -top 5 \\
             -mdb {self.mega_database} \\
             -o {self.projdir}/4.TaxAnnotation/NonRundant.protein.rma &&\\
 
