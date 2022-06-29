@@ -167,7 +167,7 @@ def main(args):
     stat_level3_ab.reset_index().to_csv('{result_dir}/Absolute/{result_suffix}.absolute.level3.xls'.format(**args), sep='\t', index=None)
     # 分组结果
     stat_level3_re_group = get_target_group_df(stat_level3_re, group_info)
-    stat_level3_re_group = stat_level3_re_group.sum(axis=0)
+    stat_level3_re_group = stat_level3_re_group / stat_level3_re_group.sum(axis=0)
     stat_level3_re_group.reset_index().to_csv('{result_dir}/Relative/{result_suffix}.relative.group.level3.xls'.format(**args), sep='\t', index=None)
 
 
