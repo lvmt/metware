@@ -58,6 +58,14 @@ def main(args):
     anno_df = pd.read_csv(args['kegg_anno'], sep='\t')
     abundance_df = pd.read_csv(args['abundance_table'], sep='\t').rename(columns={'gene': 'Query'})
     merge_df = pd.merge(anno_df, abundance_df, on='Query', how='outer').fillna('Others')
+
+    #### 生成tax与kegg信息, 后续再绘制pathway通路中需要
+    tax_df = merge_df[['KO_Pathway', 'KO', 'KO_EC', 'Query', 'taxonomy']].rename(columns={'Query': 'gene'})
+    tax_split = tax_df.drop('KO_Pathway', axis=1).join(tax_df['KO_Pathway'].str.split('|', expand=True).stack().reset_index(level=1, drop=True).rename('KO_Pathway'))
+    tax_split['KO_Pathway'] = tax_split['KO_Pathway'].apply(lambda x: x.split(';')[0])
+    tax_split = tax_split[tax_split['KO_Pathway'].str.startswith(('map', 'ko'))]
+    tax_split = tax_split.sort_values(by='KO_Pathway')[['KO_Pathway', 'KO', 'KO_EC', 'gene', 'taxonomy']]
+
     
     ################# 处理ko
     ko_df = merge_df.loc[:, ['Query', 'KO'] + samples]
@@ -78,7 +86,7 @@ def main(args):
 
     ################# 处理ec
     ec_df = merge_df.loc[:, ['Query', 'KO_EC'] + samples]
-    ec_split = ec_df.drop('KO_EC', axis=1).join(ec_df['KO_EC'].str.split(',', expand=True).stack().reset_index(level=1, drop=True).rename('KO_EC'))
+    ec_split = ec_df.drop('KO_EC', axis=1).join(ec_df['KO_EC'].str.split('|', expand=True).stack().reset_index(level=1, drop=True).rename('KO_EC'))
     ec_split.drop_duplicates(subset=['Query', 'KO_EC'], inplace=True)  # gene-muti_ko-same_ec
     stat_ec = ec_split.groupby('KO_EC').sum()
     stat_ec.loc['Others', :] = stat_ec.loc['Others', :] + stat_ec.loc['-', :]
