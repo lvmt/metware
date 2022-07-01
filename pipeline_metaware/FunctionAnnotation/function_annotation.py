@@ -45,6 +45,8 @@ class KEGG:
         self.kegg_diamond_database = self.args['kegg_diamond_database']
         self.kegg_ko_gene_relation = self.args['kegg_ko_gene_relation']
         self.kegg_relation_database = self.args['kegg_relation_database']
+        self.kegg_databse = self.args['kegg_database']
+        self.pathway_description = self.args['pathway_description']
 
 
     def blastp(self):
@@ -96,6 +98,20 @@ class KEGG:
             --sample_file {self.sample_file} \\
             --result_suffix NonRundant.protein.m8.anno.kegg \\
             --result_dir {self.projdir}/5.FunctionAnnotation/KEGG &&\\
+
+        ## 绘制pathway通路图
+        ~/.conda/envs/python3_lmt/bin/python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/plot_kegg_pathway.py \\
+            --kegg_tax {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno.kegg.tax.xls \\
+            --kegg_database {self.kegg_databse} \\
+            --pathway_description {self.pathway_description} \\
+            --result_dir {self.projdir}/5.FunctionAnnotation/KEGG/pathway_map &&\\
+
+        ## 生成pathway 报告 
+        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/pathway_map_report.py \\
+            --projdir {self.projdir} \\
+            --stat_info {self.projdir}/5.FunctionAnnotation/KEGG/pathway_map/stat.xls \\
+            --template_dir ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/templates \\
+            --report_dir {self.projdir}/5.FunctionAnnotation/KEGG/pathway_report/  &&\\
 
         echo "end time: "  `date`
         ''')
