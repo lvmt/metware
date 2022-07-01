@@ -60,11 +60,13 @@ def main(args):
     merge_df = pd.merge(anno_df, abundance_df, on='Query', how='outer').fillna('Others')
 
     #### 生成tax与kegg信息, 后续再绘制pathway通路中需要
+    tax_result = '{result_dir}/{result_suffix}.tax.xls'.format(**args)
     tax_df = merge_df[['KO_Pathway', 'KO', 'KO_EC', 'Query', 'taxonomy']].rename(columns={'Query': 'gene'})
     tax_split = tax_df.drop('KO_Pathway', axis=1).join(tax_df['KO_Pathway'].str.split('|', expand=True).stack().reset_index(level=1, drop=True).rename('KO_Pathway'))
     tax_split['KO_Pathway'] = tax_split['KO_Pathway'].apply(lambda x: x.split(';')[0])
     tax_split = tax_split[tax_split['KO_Pathway'].str.startswith(('map', 'ko'))]
     tax_split = tax_split.sort_values(by='KO_Pathway')[['KO_Pathway', 'KO', 'KO_EC', 'gene', 'taxonomy']]
+    tax_split.to_csv(tax_result, sep='\t', index=None)
 
     
     ################# 处理ko
