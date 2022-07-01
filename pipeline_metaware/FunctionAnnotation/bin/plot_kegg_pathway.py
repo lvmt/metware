@@ -67,15 +67,16 @@ def get_color_list(max_count):
 
 def draw_single_map(map_conf, map_png, color_list, map_df, out_png):
     # 颜色列表, 根据基因数目的多少, 获取对应索引的颜色
-    KO_list = map_df['KO'].tolist()
+    # KO_list = map_df['KO'].tolist()
     conf_df = pd.read_csv(map_conf, sep='\t', header=None)
     conf_df[1] = conf_df[1].apply(lambda x: x.split('?')[1])
     conf_df = conf_df.drop(1, axis=1).join(conf_df[1].str.split('+', expand=True).stack().reset_index(level=1, drop=True).rename(1))
     conf_df.rename(columns={0: 'shape', 2: 'info', 1: 'KO'}, inplace=True)
     merge_df = pd.merge(map_df, conf_df, on='KO', how='inner')
+
     im = Image.open(map_png)
     for row in merge_df.values:
-        ko, ko_count, ec_count, shape, info = row
+        ko, ko_count, ec_count, gene_count, shape, info = row
         box = re.findall(r'\d+', shape)
         box = list(map(int, box))
         color = tuple(color_list[ko_count])
@@ -97,14 +98,20 @@ def draw_single_map(map_conf, map_png, color_list, map_df, out_png):
 
 
 def main(args):
+    '''
+    KO_EC必须存在酶编号, 绘制方框时,使用酶对应的KO编号去绘制.
+    '''
     mkdir(args['result_dir'])
     df = pd.read_csv(args['kegg_tax'], sep='\t')
+    df = df[['KO_Pathway', 'KO', 'KO_EC', 'gene']]
+    df = df[df['KO_EC'] != '-']  # EC 编号必须存在
     description_df = pd.read_csv(args['pathway_description'], sep='\t', index_col=0)
+
     map_list = df['KO_Pathway'].unique().tolist()
-    df = df[['KO_Pathway', 'KO', 'KO_EC']]
     
     with open('{result_dir}/stat.xls'.format(**args), 'w') as fw:
-        fw.write('Pathway_ID\tPathway_Level1\tPathway_Level2\tPathway_Level3\tIdentified_ECs\n')
+        fw.write('Pathway_ID\tPathway_Level1\tPathway_Level2\tPathway_Level3\tIdentified_KO\tIdentified_ECs\n')
+
         for _map in map_list:
             # 绘制单张图片
             map_suffix = _map.replace('map', '')
@@ -125,9 +132,10 @@ def main(args):
 
             draw_single_map(conf, png, color_list, map_df, out_png)
 
-            ecs = '|'.join(set('|'.join(set(df[df['KO_Pathway'] == _map]['KO'].tolist())).split('|')))
+            ecs = '|'.join(set('|'.join(set(df[df['KO_Pathway'] == _map]['KO_EC'].tolist())).split('|')))
+            kos = '|'.join(set('|'.join(set(df[df['KO_Pathway'] == _map]['KO'].tolist())).split('|')))
             description = '\t'.join(description_df.loc[_map, :].tolist())
-            fw.write(f'{_map}\t{description}\t{ecs}\n')
+            fw.write(f'{_map}\t{description}\t{kos}\t{ecs}\n')
 
 
 
