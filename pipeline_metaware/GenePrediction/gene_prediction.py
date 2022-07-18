@@ -173,12 +173,12 @@ class Prediction:
             -d 0 \\
             -M 100000 \\
             -i {self.projdir}/3.GenePrediction/Cluster/total.protein.fa \\
-            -o {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.fa &&\\
+            -o {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.fa &&\\
 
         ## 对去冗余后的蛋白结果进行统计分析
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/stat_protein_cdhit.py \\
-            --clstr {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.fa.clstr \\
-            --stat  {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.stat &&\\
+            --clstr {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.fa.clstr \\
+            --stat  {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.stat &&\\
 
         echo "end time: " `date`
         ''')
@@ -189,7 +189,7 @@ class Prediction:
     def nucleotide_cdhit(self):
         # 获取核酸方面的聚类去重结果
         # 使用蛋白进行CD-HIT, 因为数据量较小, 速度快, 聚类结果中提取基因名称
-        cdhit_protein = f'{self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.fa'
+        cdhit_protein = f'{self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.fa'
         nucleotide_list = []
         for sampleID in self.fq_info:
             nucleotide_tmp = f'{self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.nucleotide.final.fa'
@@ -210,28 +210,28 @@ class Prediction:
         ~/.conda/envs/python2_lmt/bin/seqkit \\
             seq -n \\
             {cdhit_protein} \\
-            > {self.projdir}/3.GenePrediction/Cluster/NonRundant.gene_name &&\\
+            > {self.projdir}/3.GenePrediction/Cluster/Unigenes.gene_name &&\\
 
         # 获取核酸方面的代表性序列
         ~/.conda/envs/python2_lmt/bin/seqkit  \\
             grep \\
             {self.projdir}/3.GenePrediction/Cluster/total.nucleotide.fa  \\
-            -f {self.projdir}/3.GenePrediction/Cluster/NonRundant.gene_name  \\
-            > {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa &&\\
+            -f {self.projdir}/3.GenePrediction/Cluster/Unigenes.gene_name  \\
+            > {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide.fa &&\\
 
         ## 对聚类之后的结果进行统计分析
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/stat_cds_info.py \\
-            --fa {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa \\
-            --result  {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.stat_fa  &&\\
+            --fa {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide.fa \\
+            --result  {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide.stat_fa  &&\\
 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/summary_cds.py \\
-            --infile {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.stat_fa \\
-            --result_suffix {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide
+            --infile {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide.stat_fa \\
+            --result_suffix {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide
 
         # 对代表性核酸序列建立索引,后续统计丰度需要
         /share/software/apps/bowtie2/2.3.4/bowtie2-build \\
-            -f {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa \\
-            {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide &&\\
+            -f {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide.fa \\
+            {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide &&\\
         
         echo "end time: " `date`
         ''')
@@ -240,7 +240,7 @@ class Prediction:
 
 
     def stat_abundance(self, sampleID):
-        ref = f'{self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide'
+        ref = f'{self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide'
         cmd = textwrap.dedent(f'''
         # bowtie2 比对; 20gb,4t
         echo "start time: " `date`
@@ -262,8 +262,8 @@ class Prediction:
 
         # # 统计基因长度信息
         bioawk -c fastx  '{{print $name, length($seq)}}' \\
-            {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.nucleotide.fa \\
-            | tr '\t' ',' > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.length.csv  &&\\
+            {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.nucleotide.fa \\
+            | tr '\\t' ',' > {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.length.csv  &&\\
 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/get_abundance_table.py \\
             --gene_count {self.projdir}/3.GenePrediction/{sampleID}/{sampleID}.gene.count.csv  \\
@@ -290,23 +290,23 @@ class Prediction:
         ## 获取汇总的相对丰度表格,基因计数表格
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/merge_abundance_table.py \\
             --abundance_tables {table_files} \\
-            --merge_result_suffix  {self.projdir}/3.GenePrediction/Cluster/NonRundant.total &&\\
+            --merge_result_suffix  {self.projdir}/3.GenePrediction/Cluster/Unigenes.total &&\\
 
         ## 相对丰度转绝对丰度 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/relative2absolute.py \\
-            --relative_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.abundance.relative.xls\\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
-            --absolute_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.abundance.absolute.xls
+            --relative_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.abundance.relative.xls\\
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.gene.readsNum \\
+            --absolute_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.abundance.absolute.xls
 
         ## 提取支持数>2的protein.fa, 用于后续的物种注释分析
-        sed '1d' {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
-            | cut -f1 > {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.support_reads.gene_name
+        sed '1d' {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.gene.readsNum \\
+            | cut -f1 > {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.support_reads.gene_name
 
         ~/.conda/envs/python2_lmt/bin/seqkit  \\
             grep \\
-            {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.fa  \\
-            -f {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.support_reads.gene_name  \\
-            > {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa  &&\\
+            {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.fa  \\
+            -f {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.support_reads.gene_name  \\
+            > {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.support_reads.fa  &&\\
 
         echo "end time: "  `date`
         ''')
@@ -319,9 +319,9 @@ class Prediction:
         echo "start time: " `date`
         
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/GenePrediction/bin/plot.py \\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.gene.readsNum \\
             --sample_file {self.sample_file} \\
-            --result_suffix {self.projdir}/3.GenePrediction/Cluster/NonRundant.plot &&\\
+            --result_suffix {self.projdir}/3.GenePrediction/Cluster/Unigenes.plot &&\\
                 
         echo "end time: " `date`
         ''')
