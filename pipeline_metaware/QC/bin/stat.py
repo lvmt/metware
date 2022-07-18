@@ -37,7 +37,7 @@ def main(args):
     clean_total_bases = round(clean_total_bases / 1000 / 1000, 2)
 
     with open(args['stat_result'], 'w') as fw:
-        fw.write('RawData_bases(M)\tRawData_Q20\tRawData_Q30\tRawData_GC\tCleanData_bases(M)\tCleanData_Q20\tCleanData_Q30\tCleanData_Q20\n')
+        fw.write('RawData_bases(M)\tRawData_Q20\tRawData_Q30\tRawData_GC\tCleanData_bases(M)\tCleanData_Q20\tCleanData_Q30\tCleanData_GC\n')
         fw.write(f'{raw_total_bases}\t{row_total_Q20}\t{row_total_Q30}\t{row_total_GC}\t{clean_total_bases}\t{clean_total_Q20}\t{clean_total_Q30}\t{clean_total_GC}\n')
 
 
