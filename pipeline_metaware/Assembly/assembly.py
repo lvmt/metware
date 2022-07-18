@@ -41,7 +41,7 @@ class Meta_Assembly:
         cmd = textwrap.dedent(f'''
         ## 单样本组装
         ~/.conda/envs/python2_lmt/bin/megahit \\
-        -t 4 \\
+        -t 10 \\
         -1 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.1.gz \\
         -2 {self.projdir}/1.Clean/{sampleID}/{sampleID}.final.2.gz \\
         --out-dir {self.projdir}/2.Assembly/{sampleID}/megahit \\
@@ -100,7 +100,7 @@ class Meta_Assembly:
         cmd = textwrap.dedent(f'''
         # ## unmap reads混合组装
         ~/.conda/envs/python2_lmt/bin/megahit \\
-        -t 6 \\
+        -t 20 \\
         -1 {unmap1} \\
         -2 {unmap2} \\
         --out-dir {self.projdir}/2.Assembly/unmap_assembly/megahit \\
