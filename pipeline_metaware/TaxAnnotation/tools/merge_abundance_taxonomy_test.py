@@ -54,7 +54,7 @@ def main(args):
         'family': 5,
         'genus': 6,
         'species': 7
-    }
+    } 
     #################### 样本维度 进行层级拆分
     for _class in class_info:
         merge_df['Taxonomy'] = merge_df['taxonomy'].apply(lambda x:';'.join(x.split(';')[:class_info[_class]]))

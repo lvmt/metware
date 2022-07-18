@@ -31,10 +31,9 @@ def get_samples(sample_file):
 def main(args):
     samples = get_samples(args['sample_file'])
     tax = pd.read_csv(args['taxonomy_table'], sep='\t')
-    tax = tax.drop(columns=['taxid'])
     gene = pd.read_csv(args['gene_table'], sep='\t')
-    merge_df = pd.merge(tax, gene, on='gene', how='outer').fillna('k__Others|p__Others|c__Others|o__Others|f__Others|g__Others|s__Others')
-    
+    merge_df = pd.merge(tax, gene, on='gene', how='outer').fillna('k__Others;p__Others;c__Others;o__Others;f__Others;g__Others;s__Others')
+    merge_df['taxonomy'] = merge_df['taxonomy'].apply(lambda x: x if len(x.split(';')) == 7 else ';'.join(x.split(';') + ['Others'] * (7 - len(x.split(';')))))
     # 因为是统计基因的数目,因此我们需要把样本中大于0的数修改为1,便于后续的分组统计.
     for sample in samples:
         merge_df.loc[merge_df.loc[:, sample] > 0, sample] = 1
@@ -51,18 +50,18 @@ def main(args):
     }
 
     for _class in class_info:
-        merge_df['Taxonomy'] = merge_df['taxonomy'].apply(lambda x: '|'.join(x.split('|')[:class_info[_class]]))
-        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'unclassified' in x.split('|')[-1]), 'Taxonomy'] = 'Others'
-        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'Other' in x.split('|')[-1]), 'Taxonomy'] = 'Others'
+        merge_df['Taxonomy'] = merge_df['taxonomy'].apply(lambda x: ';'.join(x.split(';')[:class_info[_class]]))
+        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'nclassified' in x.split(';')[-1]), 'Taxonomy'] = 'Others'
+        merge_df.loc[merge_df['Taxonomy'].apply(lambda x: 'Other' in x.split(';')[-1]), 'Taxonomy'] = 'Others'
         stat_df = merge_df.groupby('Taxonomy').sum().reset_index()
-        stat_df[_class] = stat_df['Taxonomy'].apply(lambda x:'|'.join(x.split('|')[-2:])) 
+        stat_df[_class] = stat_df['Taxonomy'].apply(lambda x:';'.join(x.split(';')[-2:])) 
         out = '{result_suffix}.{_class}.xls'.format(**args, **locals())
         stat_df.to_csv(out, sep='\t', index=None)
 
 
         ## 进行层级拆分(全部样本合并统计)
         out = '{result_suffix}.total.{_class}.xls'.format(**args, **locals())
-        # merge_df['Detail_Taxonomy'] = merge_df['taxonomy'].apply(lambda x:'|'.join(x.split('|')[:class_info[_class]]))
+        # merge_df['Detail_Taxonomy'] = merge_df['taxonomy'].apply(lambda x:';'.join(x.split(';')[:class_info[_class]]))
         _class_info = defaultdict(set)
 
         for row in merge_df.loc[:, ['gene', 'Taxonomy']].values:
@@ -74,7 +73,7 @@ def main(args):
             for _class in _class_info:
                 gene_nums = len(_class_info[_class])
                 gene_ids = ','.join(_class_info[_class])
-                family = '|'.join(_class.split('|')[-2:])
+                family = ';'.join(_class.split(';')[-2:])
                 fw.write(f'{family}\t{_class}\t{gene_nums}\t{gene_ids}\n')
 
         del _class_info

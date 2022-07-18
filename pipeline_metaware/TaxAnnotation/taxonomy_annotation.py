@@ -18,7 +18,6 @@ import re
 import os
 import sys
 import textwrap
-from matplotlib.pyplot import text
 import pandas as pd  
 
 from .plot import TaxonPlot
@@ -38,9 +37,11 @@ class Taxonomy:
         self.projdir = self.args['projdir']
         self.analysis_list = self.args['analysis_list']
         self.nr_database = self.args['nr_database']
-        self.mega_database = self.args['mega_database']
         self.nr_diamond_evalue = self.args['nr_diamond_evalue']
-        self.taxid_taxonomy_database = self.args['taxid_taxonomy_database']
+        # self.taxid_taxonomy_database = self.args['taxid_taxonomy_database']
+        # self.mega_database = self.args['mega_database']
+        self.microbe_acc2taxid = self.args['microbe_acc2taxid']
+        self.microbe_taxid2taxonomy = self.args['microbe_taxid2taxonomy']
         self.fq_info = utils.get_fq_info(self.sample_file)
 
         ## 绘图参数 
@@ -58,12 +59,11 @@ class Taxonomy:
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
             --threads 40 \\
-            --max-target-seqs 5 \\
+            --top 5 \\
             -d {self.nr_database} \\
-            -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
-            -o {self.projdir}/4.TaxAnnotation/NonRundant.protein.daa \\
-            --evalue {self.nr_diamond_evalue} \\
-            --outfmt 100 &&\\
+            -q {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.support_reads.fa \\
+            -o {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8 \\
+            --evalue {self.nr_diamond_evalue}  &&\\
 
         echo "end time: " `date`
         ''')
@@ -71,33 +71,78 @@ class Taxonomy:
         utils.write_cmd(cmd, shellname)
 
 
-    def megan(self):
+    def lca(self):
+        '''
+        计算方法:
+        1. 过滤: 只保留evalue < min(evalue) * 10的alignment
+        2. lca: 最低公共祖先
+        '''
         cmd = textwrap.dedent(f'''
-        echo "start time: " `date`
-        # MEGAN 物种注释;megan已经整合了lca的功能
-        ~/.conda/envs/python2_lmt/bin/daa2rma  \\
-            -i {self.projdir}/4.TaxAnnotation/NonRundant.protein.daa \\
-            -ms 50 \\
-            -me 0.01 \\
-            -top 5 \\
-            -mdb {self.mega_database} \\
-            -o {self.projdir}/4.TaxAnnotation/NonRundant.protein.rma &&\\
-
-        ~/.conda/envs/python2_lmt/bin/rma2info \\
-            -i {self.projdir}/4.TaxAnnotation/NonRundant.protein.rma \\
-            -r2c Taxonomy \\
-            > {self.projdir}/4.TaxAnnotation/NonRundant.protein.info &&\\
-
-        # 比对最终结果添加物种层级注释 
-        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/addtaxonomy.py \\
-            --lca {self.projdir}/4.TaxAnnotation/NonRundant.protein.info \\
-            --taxonomy_database  {self.taxid_taxonomy_database} \\
-            --result {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy &&\\
-
-        echo "end time: "  `date`
+        echo "start time: "  `date`
+        # evalue 过滤 
+        python3  ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/m8_filter.py \\
+            --m8 {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8 \\
+            --filter_result {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.filter  &&\\
+                
+        # 获取accessid, 得到taxid
+        less {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.filter \\
+            | cut -f2  \\
+            > {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.filter.access &&\\
+                
+        cat {self.microbe_acc2taxid} \\
+            | csvtk -t grep -f 1 \\
+            -P {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.filter.access \\
+            >  {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.filter.access.taxid &&\\
+                
+        # acc -> taxid -> taxonomy
+        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/add_taxonomy.py  \\
+            --m8_filter {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.filter \\
+            --acc2taxid {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.filter.access.taxid \\
+            --taxid2taxonomy {self.microbe_taxid2taxonomy} \\
+            --m8_taxonomy {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.taxonomy &&\\
+                
+        # lca
+        python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/lca.py \\
+            {self.projdir}/4.TaxAnnotation/Unigenes.protein.m8.taxonomy \\
+            {self.projdir}/4.TaxAnnotation/Unigenes.protein.lca.taxonomy &&\\
+            
+        ln -sf {self.projdir}/4.TaxAnnotation/Unigenes.protein.lca.taxonomy \\
+            {self.projdir}/4.TaxAnnotation/Unigenes.protein.taxonomy
+                
+        echo "end time: " `date`
+         
         ''')
         shellname = f'{self.projdir}/4.TaxAnnotation/megan.sh'
         utils.write_cmd(cmd, shellname) 
+    
+
+    # def megan(self):
+    #     cmd = textwrap.dedent(f'''
+    #     echo "start time: " `date`
+    #     # MEGAN 物种注释;megan已经整合了lca的功能
+    #     ~/.conda/envs/python2_lmt/bin/daa2rma  \\
+    #         -i {self.projdir}/4.TaxAnnotation/Unigenes.protein.daa \\
+    #         -ms 50 \\
+    #         -me 0.01 \\
+    #         -top 5 \\
+    #         -mdb {self.mega_database} \\
+    #         -o {self.projdir}/4.TaxAnnotation/Unigenes.protein.rma &&\\
+
+    #     ~/.conda/envs/python2_lmt/bin/rma2info \\
+    #         -i {self.projdir}/4.TaxAnnotation/Unigenes.protein.rma \\
+    #         -r2c Taxonomy \\
+    #         > {self.projdir}/4.TaxAnnotation/Unigenes.protein.info &&\\
+
+    #     # 比对最终结果添加物种层级注释 
+    #     python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/addtaxonomy.py \\
+    #         --lca {self.projdir}/4.TaxAnnotation/Unigenes.protein.info \\
+    #         --taxonomy_database  {self.taxid_taxonomy_database} \\
+    #         --result {self.projdir}/4.TaxAnnotation/Unigenes.protein.taxonomy &&\\
+
+    #     echo "end time: "  `date`
+    #     ''')
+    #     shellname = f'{self.projdir}/4.TaxAnnotation/megan.sh'
+    #     utils.write_cmd(cmd, shellname) 
 
 
     def combine_abundance_taxonomy(self):
@@ -108,20 +153,20 @@ class Taxonomy:
         mkdir -p {self.projdir}/4.TaxAnnotation/Absolute
         mkdir -p {self.projdir}/4.TaxAnnotation/Relative
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/merge_abundance_taxonomy.py \\
-            --abundance_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.abundance.absolute.xls \\
-            --taxonomy_table {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy \\
+            --abundance_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.abundance.absolute.xls \\
+            --taxonomy_table {self.projdir}/4.TaxAnnotation/Unigenes.protein.taxonomy \\
             --sample_file {self.sample_file} \\
-            --result_suffix NonRundant.tax_abundance \\
+            --result_suffix Unigenes.tax_abundance \\
             --result_dir  {self.projdir}/4.TaxAnnotation &&\\
 
 
         ## 整合物种注释和基因数目的结果, 在单样本和全部样本的水平上,拆分为7个层级结果
         mkdir -p {self.projdir}/4.TaxAnnotation/GeneStat
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/TaxAnnotation/bin/merge_gene_taxonomy.py \\
-            --gene_table  {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
-            --taxonomy_table {self.projdir}/4.TaxAnnotation/NonRundant.protein.taxonomy \\
+            --gene_table  {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.gene.readsNum \\
+            --taxonomy_table {self.projdir}/4.TaxAnnotation/Unigenes.protein.taxonomy \\
             --sample_file {self.sample_file} \\
-            --result_suffix {self.projdir}/4.TaxAnnotation/GeneStat/NonRundant.tax_gene &&\\
+            --result_suffix {self.projdir}/4.TaxAnnotation/GeneStat/Unigenes.tax_gene &&\\
 
         echo "end time: " `date`
         ''')
@@ -137,7 +182,7 @@ class Taxonomy:
 
     def start(self):
         self.diamond()
-        self.megan()
+        self.lca()
         self.combine_abundance_taxonomy()
         self.plot()
 
