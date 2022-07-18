@@ -1,117 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>菜鸟教程(runoob.com)</title>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
 
-    *{
-
-        margin: 0;
-        padding: 0;
-        
-    }
-        
-    .box{
-        
-        border: 1px solid #000;
-        
-        margin:50px auto;
-        
-        width: 340px;
-        
-        padding: 10px 10px;
-        
-    }
+    <!--jQuery-->
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     
-    .box table{
-    
-    margin: auto;
-    
-    }
-    
-    .box .box-top{
-    
-    width: 303px;
-    
-    margin: 5px auto;
-    
-    }
-    
-    .box table tr td,th{
-    
-    padding: 5px 30px;
-    
-    text-align: center;
-    
-    }
-    
-    .box table .parent{
-    
-    background: lightgray;
-    
-    }
-    
-    .selected{
-    
-    background: gray !important;
-    
-    }
-    
-    .selectHeight{
-    
-    background: darkseagreen !important;
-    
-    }
-    
-</style>
 
 <script>
-$(function () {
-    
-    //默认让王五选中
-    
-    $("tr:contains('王五')").addClass("selectHeight")
-    
-    //点击让其展示出列表 默认让其都隐藏
-    
-    $(".box tr.parent").click(function () {
-    
-    $(this)
-    
-    .toggleClass("selected")
-    
-    .siblings(".child_"+this.id).stop().toggle();
-    
-    }).click();//此行代码表示要立即执行
-    
-    //设置列表查询
-    
-    $("#filterName").keyup(function () {
-    
-    $("table tbody tr").stop().hide() //将tbody中的tr都隐藏
-    
-    .filter(":contains('"+($(this).val())+"')").show(); //，将符合条件的筛选出来
-    
-    });
-    
-    });
-</script>
+    $( function() {
+
+        var $table = $( '#table' ),
+          isEnabled = true,      // tablesorter enabled
+          hideFilterRow = false, // hide filter row setting
+      
+          // used by headerTitles widget
+          updateTooltips = function( $cell, txt ) {
+            if ( $cell.is( ':hover' ) ) {
+              $cell
+                .attr({ title : txt, 'original-title' : txt })
+                // hide, then show the tooltip to force updating & realignment
+                .tipsy( 'hide' )
+                .tipsy( 'show' );
+            }
+            return txt;
+          };
+      
+        $table.tablesorter({
+          theme : 'blue',
+          widthFixed : true,
+          widgets : [ 'zebra', 'filter', 'headerTitles', 'toggle-ts' ],
+          widgetOptions : {
+            filter_reset           : '.reset',
+            filter_external        : '.search',
+            filter_columnFilters   : true,
+            headerTitle_useAria    : true,
+            headerTitle_tooltip    : 'tooltip',
+            headerTitle_callback   : updateTooltips,
+      
+            // toggle-ts widget
+            toggleTS_hideFilterRow : hideFilterRow,
+            toggleTS_callback      : function( c, isEnabled ) {
+              // update tooltips
+              c.$table.trigger( 'refreshHeaderTitle' );
+            }
+          }
+        });
+      
+        // enable/disable tablesorter button
+        $( '.toggle' ).click( function() {
+          isEnabled = !isEnabled;
+          $( this ).text( isEnabled ? 'Disable' : 'Enable' );
+          $table.trigger( isEnabled ? 'enable' : 'disable' );
+      
+          // If using the pager:
+          // $table.trigger( ( isEnabled ? 'enable' : 'disable' ) + 'Pager' );
+      
+          // To reset sort or filter, include the following
+          // if ( !isEnabled ) {
+          //   $table.trigger( 'sortReset' ).trigger( 'filterReset' );
+          // }
+        });
+      
+        // demo: toggle filter row option
+        $( '.filterRow' ).click( function() {
+          hideFilterRow = !hideFilterRow;
+          $table[ 0 ].config.widgetOptions.toggleTS_hideFilterRow = hideFilterRow;
+          $( this ).text( '' + hideFilterRow );
+        });
+      
+        // add tooltip
+        $( '.tooltip' ).tipsy({ gravity: 's' });
+      
+      });
+      
+    </script>
+   
 </head>
 
+
 <body>
+  
 
-<table>
+    <p>
+    Tablesorter & Filter: <button type="button" class="toggle">Disable</button>
+    Hide Filter Row: <button type="button" class="filterRow">false</button>
+    </p>
+  
+  Filter any column: <input class="search" type="search" data-column="any">
+  
+  <p>Filter <button type="button" class="reset">Reset</button> (this works even if tablesorter & filter are disabled)</p>
+  
+  <table id="table" class="tablesorter">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th data-value="e">First Name</th>
+        <th>Last Name</th>
+        <th>Age</th>
+        <th class="filter-false">Total (filter disabled)</th>
+        <th class="sorter-false">Discount (sort disabled)</th>
+        <th>Date</th>
+      </tr>
+    </thead>
     <tbody>
-        <tr class="parent" id="row_01"> <td colspan="3">前台设计组</td></tr>
-        <tr class="child_row_01"><td>张三</td><td>男</td><td>浙江宁波</td></tr>
-        <tr class="child_row_01"><td>李四</td><td>男</td><td>浙江宁波</td></tr>
-        <tr class="child_row_01"><td>王五</td><td>男</td><td>浙江宁波</td></tr>
-
+      <tr><td>1</td><td>Philip Aaron Wong</td><td>Johnson Sr Esq</td><td>25</td><td>$5.95</td><td>22%</td><td>Jun 26, 2004 7:22 AM</td></tr>
+      <tr><td>11</td><td>Aaron</td><td>Hibert</td><td>12</td><td>$2.99</td><td>5%</td><td>Aug 21, 2009 12:21 PM</td></tr>
+      <tr><td>12</td><td>Brandon Clark</td><td>Henry Jr</td><td>51</td><td>$42.29</td><td>18%</td><td>Oct 13, 2000 1:15 PM</td></tr>
+      <tr><td>111</td><td>Peter</td><td>Parker</td><td>28</td><td>$9.99</td><td>20%</td><td>Jul 6, 2006 8:14 AM</td></tr>
+      <tr><td>21</td><td>John</td><td>Hood</td><td>33</td><td>$19.99</td><td>25%</td><td>Dec 10, 2002 5:14 AM</td></tr>
+      <tr><td>013</td><td>Clark</td><td>Kent Sr.</td><td>18</td><td>$15.89</td><td>44%</td><td>Jan 12, 2003 11:14 AM</td></tr>
+      <tr><td>005</td><td>Bruce</td><td>Almighty Esq</td><td>45</td><td>$153.19</td><td>44%</td><td>Jan 18, 2021 9:12 AM</td></tr>
+      <tr><td>10</td><td>Alex</td><td>Dumass</td><td>13</td><td>$5.29</td><td>4%</td><td>Jan 8, 2012 5:11 PM</td></tr>
+      <tr><td>16</td><td>Jim</td><td>Franco</td><td>24</td><td>$14.19</td><td>14%</td><td>Jan 14, 2004 11:23 AM</td></tr>
+      <tr><td>166</td><td>Bruce Lee</td><td>Evans</td><td>22</td><td>$13.19</td><td>11%</td><td>Jan 18, 2007 9:12 AM</td></tr>
+      <tr><td>100</td><td>Brenda Dexter</td><td>McMasters</td><td>18</td><td>$55.20</td><td>15%</td><td>Feb 12, 2010 7:23 PM</td></tr>
+      <tr><td>55</td><td>Dennis</td><td>Bronson</td><td>65</td><td>$123.00</td><td>32%</td><td>Jan 20, 2001 1:12 PM</td></tr>
+      <tr><td>9</td><td>Martha</td><td>delFuego</td><td>25</td><td>$22.09</td><td>17%</td><td>Jun 11, 2011 10:55 AM</td></tr>
     </tbody>
-
-</table>
-
-
+  </table>
+  
+  
 </body>
 </html>
