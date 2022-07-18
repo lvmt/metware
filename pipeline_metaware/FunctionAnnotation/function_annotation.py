@@ -56,8 +56,8 @@ class KEGG:
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
             -d {self.kegg_diamond_database} \\
-            -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
-            -o {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8 \\
+            -q {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.support_reads.fa \\
+            -o {self.projdir}/5.FunctionAnnotation/KEGG/Unigenes.protein.m8 \\
             --max-target-seqs 1 \\
             --evalue {self.kegg_diamond_evalue} \\
             --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore &&\\
@@ -73,10 +73,10 @@ class KEGG:
         cmd = textwrap.dedent(f'''
         echo "start time: "  `date`
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/kegg_anno.py \\
-            --m8 {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8 \\
+            --m8 {self.projdir}/5.FunctionAnnotation/KEGG/Unigenes.protein.m8 \\
             --ko_gene {self.kegg_ko_gene_relation} \\
             --ko_relation {self.kegg_relation_database} \\
-            --result {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno &&\\
+            --result {self.projdir}/5.FunctionAnnotation/KEGG/Unigenes.protein.m8.anno &&\\
 
         echo "end time: " `date`
         ''')
@@ -93,15 +93,15 @@ class KEGG:
         mkdir -p {self.projdir}/5.FunctionAnnotation/KEGG/Absolute
 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/kegg_stat_abundance.py \\
-            --kegg_anno {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno \\
-            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/NonRundant.tax_abundance.absolute.total.xls \\
+            --kegg_anno {self.projdir}/5.FunctionAnnotation/KEGG/Unigenes.protein.m8.anno \\
+            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/Unigenes.tax_abundance.absolute.total.xls \\
             --sample_file {self.sample_file} \\
-            --result_suffix NonRundant.protein.m8.anno.kegg \\
+            --result_suffix Unigenes.protein.m8.anno.kegg \\
             --result_dir {self.projdir}/5.FunctionAnnotation/KEGG &&\\
 
         ## 绘制pathway通路图
         ~/.conda/envs/python3_lmt/bin/python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/plot_kegg_pathway.py \\
-            --kegg_tax {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno.kegg.tax.xls \\
+            --kegg_tax {self.projdir}/5.FunctionAnnotation/KEGG/Unigenes.protein.m8.anno.kegg.tax.xls \\
             --kegg_database {self.kegg_databse} \\
             --pathway_description {self.pathway_description} \\
             --result_dir {self.projdir}/5.FunctionAnnotation/KEGG/pathway_map &&\\
@@ -127,10 +127,10 @@ class KEGG:
         ## 汇总统计|单样本统计
         mkdir -p {self.projdir}/5.FunctionAnnotation/KEGG/GeneStat
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/kegg_stat_gene.py \\
-            --kegg_anno {self.projdir}/5.FunctionAnnotation/KEGG/NonRundant.protein.m8.anno \\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
+            --kegg_anno {self.projdir}/5.FunctionAnnotation/KEGG/Unigenes.protein.m8.anno \\
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.gene.readsNum \\
             --sample_file {self.sample_file} \\
-            --result_suffix NonRundant.protein.m8.anno.kegg.gene_stat  \\
+            --result_suffix Unigenes.protein.m8.anno.kegg.gene_stat  \\
             --result_dir {self.projdir}/5.FunctionAnnotation/KEGG &&\\
 
         echo "end time: " `date`
@@ -164,8 +164,8 @@ class CAZy:
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
             -d {self.cazy_diamond_databse} \\
-            -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
-            -o {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8 \\
+            -q {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.support_reads.fa \\
+            -o {self.projdir}/5.FunctionAnnotation/CAZy/Unigenes.protein.m8 \\
             --max-target-seqs 1 \\
             --evalue {self.cazy_diamond_evalue} \\
             --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore &&\\
@@ -181,9 +181,9 @@ class CAZy:
         cmd = textwrap.dedent(f'''
         echo "start time: " `date`
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/cazy_anno.py \\
-            --m8 {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8 \\
+            --m8 {self.projdir}/5.FunctionAnnotation/CAZy/Unigenes.protein.m8 \\
             --cazy_relation {self.cazy_relation_database} \\
-            --result {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno &&\\
+            --result {self.projdir}/5.FunctionAnnotation/CAZy/Unigenes.protein.m8.anno &&\\
 
         echo "end time: " `date`
         ''')
@@ -199,10 +199,10 @@ class CAZy:
         mkdir -p {self.projdir}/5.FunctionAnnotation/CAZy/Absolute
 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/cazy_stat_abundance.py \\
-            --cazy_anno {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno  \\
-            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/NonRundant.tax_abundance.absolute.total.xls \\
+            --cazy_anno {self.projdir}/5.FunctionAnnotation/CAZy/Unigenes.protein.m8.anno  \\
+            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/Unigenes.tax_abundance.absolute.total.xls \\
             --sample_file  {self.sample_file} \\
-            --result_suffix NonRundant.protein.m8.anno.cazy \\
+            --result_suffix Unigenes.protein.m8.anno.cazy \\
             --result_dir {self.projdir}/5.FunctionAnnotation/CAZy &&\\
         
         echo "end time: " `date`
@@ -217,10 +217,10 @@ class CAZy:
         echo "start time: " `date`
         mkdir -p {self.projdir}/5.FunctionAnnotation/CAZy/GeneStat
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/cazy_stat_gene.py \\
-            --cazy_anno {self.projdir}/5.FunctionAnnotation/CAZy/NonRundant.protein.m8.anno \\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum  \\
+            --cazy_anno {self.projdir}/5.FunctionAnnotation/CAZy/Unigenes.protein.m8.anno \\
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.gene.readsNum  \\
             --sample_file {self.sample_file} \\
-            --result_suffix NonRundant.protein.m8.anno.cazy.gene_stat  \\
+            --result_suffix Unigenes.protein.m8.anno.cazy.gene_stat  \\
             --result_dir {self.projdir}/5.FunctionAnnotation/CAZy &&\\
 
         echo "end time: " `date`
@@ -255,8 +255,8 @@ class eggNOG:
         ~/pipeline/metagenomics/software/diamond \\
             blastp \\
             -d  {self.eggnog_diamond_databse} \\
-            -q {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.protein.support_reads.fa \\
-            -o {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8 \\
+            -q {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.protein.support_reads.fa \\
+            -o {self.projdir}/5.FunctionAnnotation/eggNOG/Unigenes.protein.m8 \\
             --max-target-seqs 1 \\
             --evalue {self.eggnog_diamond_evalue} \\
             --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore &&\\
@@ -271,9 +271,9 @@ class eggNOG:
         cmd = textwrap.dedent(f'''
         echo  "start time: " `date`
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/eggNOG_anno.py \\
-            --m8 {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8 \\
+            --m8 {self.projdir}/5.FunctionAnnotation/eggNOG/Unigenes.protein.m8 \\
             --eggNOG_relation {self.eggnog_relation_database} \\
-            --result {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno &&\\
+            --result {self.projdir}/5.FunctionAnnotation/eggNOG/Unigenes.protein.m8.anno &&\\
         
         echo "end time: " `date`
         ''')
@@ -288,10 +288,10 @@ class eggNOG:
         mkdir -p {self.projdir}/5.FunctionAnnotation/eggNOG/Absolute
 
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/eggNOG_stat_abundance.py \\
-            --eggNOG_anno {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno \\
-            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/NonRundant.tax_abundance.absolute.total.xls \\
+            --eggNOG_anno {self.projdir}/5.FunctionAnnotation/eggNOG/Unigenes.protein.m8.anno \\
+            --abundance_table {self.projdir}/4.TaxAnnotation/Absolute/Unigenes.tax_abundance.absolute.total.xls \\
             --sample_file {self.sample_file} \\
-            --result_suffix NonRundant.protein.m8.anno.eggNOG \\
+            --result_suffix Unigenes.protein.m8.anno.eggNOG \\
             --result_dir {self.projdir}/5.FunctionAnnotation/eggNOG/ &&\\
 
         echo "end time: " `date`
@@ -306,10 +306,10 @@ class eggNOG:
         mkdir -p {self.projdir}/5.FunctionAnnotation/eggNOG/GeneStat 
         
         python3 ~/gitlab/meta_genomics/metagenomics/pipeline_metaware/FunctionAnnotation/bin/eggNOG_stat_gene.py  \\
-            --eggNOG_anno {self.projdir}/5.FunctionAnnotation/eggNOG/NonRundant.protein.m8.anno \\
-            --gene_table {self.projdir}/3.GenePrediction/Cluster/NonRundant.total.gene.readsNum \\
+            --eggNOG_anno {self.projdir}/5.FunctionAnnotation/eggNOG/Unigenes.protein.m8.anno \\
+            --gene_table {self.projdir}/3.GenePrediction/Cluster/Unigenes.total.gene.readsNum \\
             --sample_file {self.sample_file} \\
-            --result_suffix NonRundant.protein.m8.anno.eggNOG.gene_stat \\
+            --result_suffix Unigenes.protein.m8.anno.eggNOG.gene_stat \\
             --result_dir {self.projdir}/5.FunctionAnnotation/eggNOG &&\\
             
         echo "end time: " `date`

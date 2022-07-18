@@ -7,6 +7,7 @@
 @Last Modified time: 2022-06-14 09:35:29
 '''
 
+
 # cazy数据库，统计丰度信息；思路同kegg
 
 
@@ -59,6 +60,14 @@ def main(args):
     anno_df = pd.read_csv(args['cazy_anno'], sep='\t').fillna('Others')
     abundance_df = pd.read_csv(args['abundance_table'], sep='\t').rename(columns={'gene': 'query'})
     merge_df = pd.merge(anno_df, abundance_df, on='query', how='outer').fillna('Others')
+    
+    ## 
+    tax_result = '{result_dir}/{result_suffix}.tax.xls'.format(**args)
+    tax_df = merge_df[['family', 'query', 'taxonomy']].rename(columns={'query': 'gene', 'family': 'CAZy_Family'})
+    tax_df = tax_df[tax_df['CAZy_Family'] != 'Others']
+    tax_df = tax_df.sort_values(by='CAZy_Family')[['CAZy_Family', 'gene', 'taxonomy']]
+    tax_df.to_csv(tax_result, sep='\t', index=None)
+
 
 
     ########################### 处理6大通路文件

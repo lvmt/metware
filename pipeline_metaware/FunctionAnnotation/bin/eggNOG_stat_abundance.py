@@ -84,6 +84,16 @@ def main(args):
     anno_df = pd.read_csv(args['eggNOG_anno'], sep='\t').fillna('Others')
     abundance_df = pd.read_csv(args['abundance_table'], sep='\t').rename(columns={'gene': 'query'})
     merge_df = pd.merge(anno_df, abundance_df, on='query', how='outer').fillna('Others')
+    
+    
+    ## 生成COG与物种的对应关系，便于后续数据挖掘
+    tax_result = '{result_dir}/{result_suffix}.tax.xls'.format(**args)
+    tax_df = merge_df[['Ortholog_Group', 'query', 'taxonomy']].rename(columns={'query': 'gene'})
+    tax_df = tax_df[tax_df['Ortholog_Group'].str.contains('OG')]
+    tax_df = tax_df.sort_values(by='Ortholog_Group')[['Ortholog_Group', 'gene', 'taxonomy']]
+    tax_df.to_csv(tax_result, sep='\t', index=None)
+    
+    
      
     ####### 处理_class（level1）
     class_df = merge_df.loc[:, ['query', 'Functional_Category'] + samples]
