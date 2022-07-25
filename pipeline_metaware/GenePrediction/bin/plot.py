@@ -72,7 +72,11 @@ def boxplot(df, group_info, result_suffix):
             gene_sum[group].append(gene_nums)
 
     boxplot_result = f'{result_suffix}.boxplot.png'
-    sns.boxplot(data=pd.DataFrame(gene_sum)).get_figure().savefig(boxplot_result, Bbox='tight', dpi=400)
+    plt.figure(figsize=(10, 10), dpi=100)
+    ax = sns.boxplot(data=pd.DataFrame(gene_sum))
+    ax.set_xlabel('Group')
+    ax.set_ylabel('Count')
+    ax.get_figure().savefig(boxplot_result, Bbox='tight')
 
 
 def core_pan(df, samples, result_suffix):
@@ -101,13 +105,21 @@ def core_pan(df, samples, result_suffix):
             pan_num = sum(df[random.sample(samples, sample_nums)].sum(axis=1) > 0)
             core_stat_info[sample_nums].append(core_num)
             pan_stat_info[sample_nums].append(pan_num)
-    fig_core, ax_core = plt.subplots(1, 1)
+            
+    fig_core, ax_core = plt.subplots(1, 1, figsize=(20, 10))
     sns.boxplot(data=pd.DataFrame.from_dict(core_stat_info), ax=ax_core)
+    ax_core.set_xlabel('Sample Numbers')
+    ax_core.set_ylabel('Count')
+    ax_core.set_title('Core gene analysis')
     fig_core.savefig(f'{result_suffix}.core.png', Bbox='tight', dpi=400)
 
-    fig_pan, ax_pan = plt.subplots(1, 1) 
+    fig_pan, ax_pan = plt.subplots(1, 1, figsize=(20, 10))
     sns.boxplot(data=pd.DataFrame.from_dict(pan_stat_info), ax=ax_pan)
+    ax_pan.set_xlabel('Sample Numbers')
+    ax_pan.set_ylabel('Count')
+    ax_pan.set_title('Pan gene analysis')
     fig_pan.savefig(f'{result_suffix}.pan.png', Bbox='tight', dpi=400) 
+
 
 
 def main(args):
